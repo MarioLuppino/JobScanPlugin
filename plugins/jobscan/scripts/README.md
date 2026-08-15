@@ -41,6 +41,8 @@ unedited and almost nothing will match, because the defaults are deliberately ge
 | `discover-ats.mjs` | Probes Greenhouse / Lever / SmartRecruiters / Ashby / Workable slugs. |
 | `discover-workday.mjs` | Probes Workday CXS paths; `--retry` re-checks ones marked `pending`. |
 | `test-triage.mjs` | Regression tests. Run after any edit to your patterns. |
+| `calibrate.mjs` | Reads recorded outcomes; reports whether your fit scores predict anything. |
+| `pipeline.mjs` | Application aging, follow-up nudges, weekly quota tracking. |
 | `*.example.json` | Templates. Copy each to the same name without `.example`. |
 
 Your own `triage-config.json`, `employers.json`, `ats-feeds.json`, `workday-candidates.json` and
@@ -92,6 +94,32 @@ post hundreds of roles you never want. Removing that one sector tag is normally 
 **Watch out for `\b` at the end of a prefix pattern.** `/hygien\b/` never matches "hygiene", because there
 is no word boundary between "n" and "e". This shipped as a real bug and let a whole category through.
 `test-triage.mjs` guards against it; add a case whenever you add a prefix pattern.
+
+## Closing the loop
+
+Finding roles is the easy half. These two read what happened *after* you applied, which is the only way
+the scoring ever improves.
+
+```bash
+node calibrate.mjs     # do my fit scores actually predict outcomes?
+node pipeline.mjs      # what's still live, what needs a follow-up, am I hitting quota?
+```
+
+**`calibrate.mjs`** reports conversion by score band and flags rules your own outcomes contradict. It
+deliberately refuses to draw conclusions below eight resolved outcomes, because a conversion rate from
+three rows is noise wearing a percentage sign. The most common first-run finding is that outcomes were
+never recorded at all — which *is* the finding. Gates fail silently, so recorded results are the only
+instrument that can catch a bad one.
+
+A real case: a user's rule excluded an entire government pay grade as too junior. They were later hired at
+exactly that grade, because it carried a promotion ladder to a far higher one. The rule had been discarding
+the best role available, invisibly, for months. `calibrate.mjs` exists to surface that class of error.
+
+**`pipeline.mjs`** models the fact that applications take weeks to resolve. It surfaces packets built but
+never submitted (wasted work), applications old enough to chase, and whether a weekly quota is being met.
+
+Both need one habit: **record the fit score when you apply, and the outcome when you hear back, including
+"no response."** Skipping the score is the usual failure, and it makes your best evidence unusable.
 
 ## What this does not do
 

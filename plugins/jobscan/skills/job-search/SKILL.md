@@ -144,8 +144,11 @@ outright; no strength elsewhere redeems it. Score only what clears the gates. Ke
 and their weights written down rather than re-derived per posting, or scores will not be comparable between
 listings or between scans.
 
-**Let recorded outcomes correct the rules.** The `Outcome` column in `Applied Index.md` exists so gates can
-be checked against reality. One user's rule screened out an entire government pay grade as too junior; they
+**Let recorded outcomes correct the rules — and actually read them.** Run `node scripts/calibrate.mjs`
+periodically: it reports conversion by score band and flags rules the user's own outcomes contradict.
+Run `node scripts/pipeline.mjs` at the start of a scan for what is still live, what is stale enough to
+follow up on, and whether a weekly quota is being met. The `Outcome` column in `Applied Index.md` exists so
+gates can be checked against reality. One user's rule screened out an entire government pay grade as too junior; they
 were later hired at exactly that grade, because it carried a promotion ladder to a far higher one. Whenever
 an outcome contradicts a gate, fix the gate and say so — a rule that would have discarded a job the user
 actually took is a bug, not a preference.

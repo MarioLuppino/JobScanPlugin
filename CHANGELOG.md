@@ -17,6 +17,11 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
   install commands, a check for whether a PDF has a text layer, and file-discovery habits.
 - `Outcome` column in the applied-index template, so fit scores can be calibrated against what actually
   happened rather than assumed.
+- `calibrate.mjs`: reads recorded outcomes and reports conversion by fit-score band, plus rules the user’s
+  own outcomes contradict. Refuses to draw conclusions below eight resolved outcomes rather than presenting
+  noise as signal. Closes the feedback loop that made scoring unfalsifiable.
+- `pipeline.mjs`: models the application pipeline rather than the weekly snapshot — packets built but never
+  submitted, applications stale enough to follow up on, and weekly quota tracking.
 
 ### Changed
 - Fit scoring: hard gates are disqualifications rather than low scores; weights are written down rather than
