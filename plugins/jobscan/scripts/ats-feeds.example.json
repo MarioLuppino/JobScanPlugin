@@ -1,0 +1,51 @@
+{
+  "_comment": "Copy to ats-feeds.json. Employer -> public ATS job-feed registry, consumed by fetch-ats.mjs. Build it with discover-ats.mjs (Greenhouse/Lever/SmartRecruiters/Ashby/Workable) and discover-workday.mjs (Workday). These are the ATSs' own public endpoints: free, no API key, no scraping.",
+
+  "keywords": ["data analyst", "research analyst", "program manager", "policy analyst"],
+  "_keywords": "Server-side search terms, used ONLY for Workday (which requires a search string) and for SmartRecruiters boards over 400 postings. Replace with your field's core terms. Everything else is pulled in full and filtered locally by triage.mjs.",
+
+  "feeds": [
+    {
+      "employer": "Example Corp",
+      "sector": "industry",
+      "ats": "greenhouse",
+      "slug": "examplecorp",
+      "jobCount": 42,
+      "_note": "Greenhouse: slug is the path in job-boards.greenhouse.io/<slug>."
+    },
+    {
+      "employer": "Example Nonprofit",
+      "sector": "nonprofit",
+      "ats": "lever",
+      "slug": "examplenonprofit",
+      "jobCount": 12,
+      "_note": "Lever: slug is the path in jobs.lever.co/<slug>."
+    },
+    {
+      "employer": "Example Global",
+      "sector": "industry",
+      "ats": "smartrecruiters",
+      "slug": "ExampleGlobal",
+      "jobCount": 1200,
+      "_note": "SmartRecruiters: slug is case-sensitive. Over 400 postings triggers server-side keyword filtering."
+    },
+    {
+      "employer": "Example University",
+      "sector": "university",
+      "ats": "workday",
+      "host": "example.wd1.myworkdayjobs.com",
+      "tenant": "example",
+      "site": "ExampleCareers",
+      "jobCount": 300,
+      "_note": "Workday: host/tenant/site come from the careers URL. Get them with discover-workday.mjs. HTTP_422 means the path is wrong; HTTP_500 means the path is right but the tenant is erroring."
+    },
+    {
+      "employer": "Example Small Org",
+      "sector": "nonprofit",
+      "ats": "paylocity",
+      "guid": "00000000-0000-0000-0000-000000000000",
+      "companySlug": "Example-Org-Inc",
+      "_note": "Paylocity: both values are visible in the board URL recruiting.paylocity.com/recruiting/jobs/All/<guid>/<companySlug>."
+    }
+  ]
+}

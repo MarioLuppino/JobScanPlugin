@@ -64,7 +64,31 @@ full-context workflow at the lowest token cost. Don't narrate intermediate reaso
 2. **Candidate retrieval — read `profile-core.md` once** per run; reuse for every listing.
 3. *(Résumé tailoring and 4. cover letter run in `job-applications` on selection — see that skill.)*
 
+**Two-stage extraction.** Never pull a full posting just to learn it fails a gate. First pass extracts only
+title, salary, open/closed, location and any hard credential requirement; only postings clearing the gates
+get a full extraction. Most die at stage one, and dying cheaply is the point.
+
+**If you fan out to subagents, do it for context isolation, not speed.** Scraping tools are usually
+rate-limited per account, so parallel agents contend for the same slots and buy little wall-clock. The real
+win is that an agent reading ten postings and returning ten structured verdicts keeps ten full postings out
+of the main context. So: main thread runs the ATS feeds and cheap sweeps (already filtered, fast);
+subagents do per-posting deep reads and scoring, returning schema-shaped data, never prose; the main thread
+keeps dedup, ranking and digest-writing, which need the whole picture and go inconsistent when split. Fan
+out only above roughly 8–10 postings, since each agent re-reads the profile and rules as fixed overhead.
+Worth adding a final **completeness check** that every source branch was actually searched — a batch that
+times out silently looks identical to a source that had nothing.
+
 ## Where to search
+
+**STEP 0 — pull the ATS feeds before spending anything on search.** Most employers' listings live in an
+applicant tracking system with a free public JSON endpoint; one request returns every open role. Run
+`node scripts/fetch-ats.mjs | node scripts/dedup.mjs --record > candidates.json`, which pulls every
+registered employer, applies zero-token title triage, and screens against the applied-index and seen-URL
+cache. On a real 24-employer registry this returned ~1,950 postings for zero API cost with ~87% rejected
+before anything reached context. Only then spend search budget on what the registry does not cover.
+Setup and the per-ATS details are in `scripts/README.md`. **Workday is searchable** via its CXS endpoint
+(`searchText` filters server-side) despite having no sitemap; `HTTP_422` there means a wrong tenant/site
+path, `HTTP_500` means the path is right and the tenant is erroring.
 
 Read `references/sources.md` for boards, API patterns, query templates, and the search-term-coverage +
 split-quota rules. Keep the source *categories* (federal, state agency, university/research, non-profit,
@@ -73,9 +97,37 @@ Cross-check aggregator hits against the employer's own careers page for the live
 
 **Preferred tooling (Firecrawl):** `firecrawl-search` for discovery, `firecrawl-map` to find a canonical
 posting URL, `firecrawl-scrape` for JS portals. All fall back gracefully to built-in fetch/search/browser
-tools; note the fallback in the digest's Process note. `firecrawl-monitor` can watch a few high-yield sources
-for new postings between full scans (optional). Never use `firecrawl-interact` (or browser form-fill) to
-submit anything.
+tools; note the fallback in the digest's Process note. Never use `firecrawl-interact` (or browser form-fill)
+to submit anything.
+
+**Operational rules learned the expensive way:**
+- **Check the tool is available before declaring it unavailable.** Read the *authentication* line of a
+  status check and only that line. A transient network error ("could not fetch account info", DNS failure)
+  is **not** a missing key — retry it. Misreading one caused an entire scan to silently downgrade to
+  basic web search while the tool sat authenticated and funded.
+- **Search boxes are allowed; submitting is not.** Some portals ignore `?keyword=` URL parameters entirely
+  and respond only to their real search UI, so typing a query into a site's own search box and clicking
+  search is fine. **Never** use form-fill to complete, advance, or submit an actual application, create an
+  account, or log in. And never report a portal as "dry" when it was only probed with URL parameters —
+  that is a tooling failure, not an absence of jobs.
+- **Never spend a metered credit on a LOCAL file.** Paid scrape/OCR services are for the web. A saved
+  posting, an offer letter, a scanned form on disk should be handled by free local tooling — and if that
+  tooling is missing, **tell the user which one-line install fixes it for their OS** rather than quietly
+  billing an API. Check a PDF for a text layer first:
+  `pdftotext -layout f.pdf - | tr -d '[:space:]' | wc -c` — near zero means image-only, so render it with
+  `pdftoppm` or OCR it locally. Full list and per-platform install commands:
+  `jobscan-onboarding/references/local-tooling.md`. Give install commands for the user's actual OS; an
+  `apt` command on Windows is worse than useless.
+- **Don't map marketing domains.** A company homepage's `/careers` page is usually a marketing shell with
+  no listings on it. Employers belong in the ATS registry, not a map sweep.
+- **Cap every interactive session** with an explicit timeout and an explicit stop in the same command. One
+  session left open billed 50 credits for a single 7-minute run.
+- **Monitors are not free.** Check the estimated recurring cost when creating one: a naive daily monitor
+  with four queries came to over half a monthly credit budget. Two queries at five results was a quarter
+  of that. Never monitor what the free ATS feeds already cover.
+- **Rotate sweep order and background long batches.** If a batch hits a tool timeout, whatever sits last in
+  a fixed list is never searched — and it will be the same sources every single week. Rotate the order,
+  and say explicitly in the digest when a branch was skipped.
 
 ## Fit scoring
 
@@ -85,6 +137,29 @@ rationale, top 1–2 matches, biggest gap, and a **tier tag** (federal / state a
 sales) that drives the résumé template. Rank by fit; keep the top ~10 (apply the user's split quota if set).
 **Exclude anything below the fit floor** — never pad the count by lowering it. Fewer genuine fits is always
 better than a padded list.
+
+**Gate failures are disqualifications, not low scores.** A role that fails a hard gate (below the salary
+floor, not authorized to work there, closed, a required credential the user genuinely lacks) is excluded
+outright; no strength elsewhere redeems it. Score only what clears the gates. Keep the weighted dimensions
+and their weights written down rather than re-derived per posting, or scores will not be comparable between
+listings or between scans.
+
+**Let recorded outcomes correct the rules.** The `Outcome` column in `Applied Index.md` exists so gates can
+be checked against reality. One user's rule screened out an entire government pay grade as too junior; they
+were later hired at exactly that grade, because it carried a promotion ladder to a far higher one. Whenever
+an outcome contradicts a gate, fix the gate and say so — a rule that would have discarded a job the user
+actually took is a bug, not a preference.
+
+### If the user has a weekly application quota
+
+Some users must apply to a minimum number of jobs per week to maintain unemployment benefits. When that is
+set, **it changes what the scan is for**: the deliverable is no longer a tidy ranked ten, it is *enough
+genuinely applyable roles to clear the quota*. A scan that surfaces fewer has failed at its primary job —
+say so plainly and widen immediately.
+
+**Never let a quota lower the fit floor or relax verification.** The answer to a thin week is a wider
+sweep, never a padded list. A prepared packet does not count toward a quota; only a submitted application
+does, and the user submits it. Log submissions in `Work Search Log.md`.
 
 ## Output: the weekly digest
 

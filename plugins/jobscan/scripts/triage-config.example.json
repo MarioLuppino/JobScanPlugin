@@ -1,0 +1,36 @@
+{
+  "_comment": "Copy to triage-config.json and edit. This is the ONLY file you must customize to make the ATS pipeline work for your field. Patterns are JavaScript regex source strings, matched case-insensitively against the job title.",
+
+  "salaryFloor": 65000,
+  "_salaryFloor": "Hard minimum annual base in your currency. A posting whose feed-reported minimum is below this is rejected at zero cost. Postings with no stated salary are NOT rejected here; they pass to a later stage.",
+
+  "matchTitlePatterns": [
+    "\\bdata\\s+(analyst|scientist|engineer)\\b",
+    "\\bresearch\\s+(analyst|scientist|associate|manager)\\b",
+    "\\bprogram\\s+(manager|coordinator|officer)\\b",
+    "\\bproject\\s+manager\\b",
+    "\\bpolicy\\s+(analyst|advisor)\\b",
+    "\\b(grants?|sponsored\\s+programs?)\\s+(manager|administrator|specialist)\\b"
+  ],
+  "_matchTitlePatterns": "REPLACE THESE with the titles of your field. A title matching any of these becomes a 'match' and is worth pulling the full posting for. Be specific: these are what make the pipeline useful. Examples by field -- nursing: '\\\\bregistered\\\\s+nurse\\\\b'; software: '\\\\bbackend\\\\s+engineer\\\\b'; teaching: '\\\\bcurriculum\\\\s+(specialist|coordinator)\\\\b'.",
+
+  "excludeTitlePatterns": [
+    "\\b(technician|technologist\\s+i\\b|aide|helper|laborer|labourer)\\b",
+    "\\b(intern|internship|apprentice|trainee|student|volunteer)\\b",
+    "\\b(seasonal|temporary|temp|part[-\\s]?time|casual|on[-\\s]?call)\\b",
+    "\\b(driver|cdl|forklift|warehouse|picker|crew|team\\s+member)\\b",
+    "\\b(custodian|janitor|housekeep|maintenance|mechanic|welder|electrician|plumber)\\b",
+    "\\b(cashier|barista|retail\\s+associate|sales\\s+associate|receptionist|front\\s+desk)\\b",
+    "\\b(security\\s+(guard|officer)|firefighter|police|correction)"
+  ],
+  "_excludeTitlePatterns": "Sub-professional tier and wrong-occupation rejects. The defaults here are field-agnostic and safe for most users. ADD your own for adjacent-but-wrong specialties that share your vocabulary -- these save the most tokens, because near-miss titles are exactly what a keyword search surfaces. Remove any that would reject roles you actually want (e.g. delete the 'seasonal' line if seasonal work suits you).",
+
+  "genericTitlePattern": "\\b(scientist|specialist|coordinator|manager|analyst|lead|director|officer|consultant|advisor|administrator)\\b",
+  "_genericTitlePattern": "Titles too generic to judge alone. These become 'review' (not 'match') and only when the employer is in relevantSectors.",
+
+  "relevantSectors": ["government", "university", "nonprofit", "industry"],
+  "_relevantSectors": "Sector tags from your ats-feeds.json. A generic title only reaches 'review' at an employer in one of these. Leave a sector OUT if its employers post hundreds of roles you never want -- that single change is the difference between a usable shortlist and a holding pen.",
+
+  "locationHintPattern": "\\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\\b|United\\s+States|USA|U\\.S\\.|remote",
+  "_locationHintPattern": "Locations you can work without extra steps (visa, relocation). A domain-title match OUTSIDE this becomes 'review' rather than 'match', so it surfaces but is flagged. Non-US users: replace with your own country/region pattern."
+}

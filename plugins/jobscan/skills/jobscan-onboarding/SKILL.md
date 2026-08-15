@@ -64,13 +64,33 @@ In the archive path, create **`Applied Index.md`** from `references/templates/Ap
 **`Considered - Not Pursued.md`** from its template (the do-not-resurface list for roles seen and passed on),
 and a `Job Search Digests/` folder.
 
+**Ask whether the user is claiming unemployment benefits.** If they are, also create **`Work Search Log.md`**
+from `references/templates/Work Search Log.template.md` and have them fill in the requirement block from
+their own agency's rules (the required count, the week boundary, and what counts all vary by jurisdiction —
+they must confirm it, not you). A weekly application quota changes what the scan is *for*: the deliverable
+becomes **enough genuinely applyable roles to clear the quota**, not a tidy ranked ten. Tell the
+`job-search` skill the number. Never let a quota lower the fit floor.
+
 ## Step 5 — Field-specific search config
 
 Edit the **`job-search` skill's `references/sources.md`** working copy (or a user override) to swap in the
 user's field employers, boards, APIs, and domain keywords (keep the source categories). Encode the
 asymmetric-keyword pairs that must both be searched.
 
+**Then set up the ATS feed pipeline — this is the highest-value step in onboarding.** In
+`plugins/jobscan/scripts/`: copy `triage-config.example.json` → `triage-config.json` and replace
+`matchTitlePatterns` with the user's actual job titles (without this almost nothing matches), copy
+`employers.example.json` → `employers.json` with their target employers, then run `node discover-ats.mjs`
+and, for large employers, `node discover-workday.mjs`. Verify with `node fetch-ats.mjs --summary` and
+`node test-triage.mjs`. See `scripts/README.md`.
+
 ## Step 6 — Confirm tooling & finish
+
+**Walk the user through `references/local-tooling.md`** and install what's missing, giving the commands for
+**their** operating system. Node.js is required for the `scripts/` pipeline; Poppler is the highest-value
+optional install, because without it scanned PDFs can't be read locally and the agent will otherwise burn
+metered API credits on files already on disk. On Windows, installs need a terminal/editor restart to take
+effect on `PATH`.
 
 Confirm: Skills feature available; Firecrawl connected (or note the fallback); Markdown→docx path chosen
 (see the `job-applications` skill's `references/docx-generation.md`); scheduler wanted (if so, register the
