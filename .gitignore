@@ -29,3 +29,11 @@ Considered - Not Pursued.md
 .DS_Store
 Thumbs.db
 *.log
+
+# ATS pipeline: personal config and caches (ats-feeds.json reveals who you apply to)
+plugins/jobscan/scripts/triage-config.json
+plugins/jobscan/scripts/employers.json
+plugins/jobscan/scripts/ats-feeds.json
+plugins/jobscan/scripts/workday-candidates.json
+plugins/jobscan/scripts/seen-urls.json
+plugins/jobscan/scripts/candidates.json

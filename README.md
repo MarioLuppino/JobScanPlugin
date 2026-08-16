@@ -28,7 +28,7 @@ rather than regenerate, a single de-dup index instead of rescanning folders) and
 
 ```bash
 # In Claude Code:
-/plugin marketplace add MarioLuppino/JobScan
+/plugin marketplace add MarioLuppino/JobScanPluggin
 /plugin install jobscan@jobscan
 ```
 

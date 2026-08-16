@@ -1,0 +1,14 @@
+{
+  "_comment": "Copy to workday-candidates.json. Candidate Workday CXS paths for discover-workday.mjs to probe. Probing is free, so list several guesses per employer -- a wrong guess returns HTTP_422 and is discarded automatically.",
+
+  "_howToFind": "Open the employer's careers page. A Workday URL looks like https://acme.wd5.myworkdayjobs.com/AcmeCareers -- `host` is acme.wd5.myworkdayjobs.com and `site` is AcmeCareers. The wd-number varies by tenant (wd1, wd3, wd5, wd103, wd108...) and guessing it wrong is the single most common cause of HTTP_422, so try several. If every guess 422s, open the page and read the actual /wday/cxs/ request in your browser's network tab -- that is definitive.",
+
+  "_commonSiteNames": "Careers, External, ExternalCareers, <Company>Careers, <Company>, Global, Staff, Jobs.",
+
+  "candidates": [
+    { "employer": "Example Corp", "sector": "industry", "host": "example.wd1.myworkdayjobs.com", "site": "ExampleCareers" },
+    { "employer": "Example Corp", "sector": "industry", "host": "example.wd5.myworkdayjobs.com", "site": "Example" },
+    { "employer": "Example University", "sector": "university", "host": "exampleuni.wd1.myworkdayjobs.com", "site": "Staff" },
+    { "employer": "Example State Government", "sector": "government", "host": "examplestate.wd5.myworkdayjobs.com", "site": "External_Career_Site" }
+  ]
+}

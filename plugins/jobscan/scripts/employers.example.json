@@ -1,0 +1,25 @@
+{
+  "_comment": "Copy to employers.json and replace with YOUR target employers. discover-ats.mjs probes every (employer, ats, slug) combination against five public ATS APIs. Probing is free and fast, so list several candidate spellings per employer -- lowercase, no spaces, with and without suffixes like 'inc' or 'group'.",
+
+  "_sectorNote": "The `sector` tag is used by triage.mjs: a generic job title only reaches the 'review' bucket at an employer whose sector is listed in triage-config.json relevantSectors. Use whatever tags suit your search; keep them consistent.",
+
+  "_findingSlugs": "Quickest way to find a slug: search the web for `site:job-boards.greenhouse.io <employer>` (or jobs.lever.co, jobs.smartrecruiters.com). The slug is the path segment after the domain. Many large employers use Workday instead and will not be found here -- run discover-workday.mjs for those.",
+
+  "employers": [
+    {
+      "employer": "Example Corp",
+      "sector": "industry",
+      "slugs": ["examplecorp", "example", "example-corp"]
+    },
+    {
+      "employer": "Example Nonprofit",
+      "sector": "nonprofit",
+      "slugs": ["examplenonprofit", "examplenp"]
+    },
+    {
+      "employer": "Example Research Institute",
+      "sector": "university",
+      "slugs": ["exampleresearch", "exampleinstitute"]
+    }
+  ]
+}
