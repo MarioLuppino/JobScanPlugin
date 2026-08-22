@@ -3,6 +3,8 @@
 Ask conversationally, a few at a time. Capture real numbers. Flag any missing metric and ask a follow-up
 rather than inventing one. Examples are field-neutral — adapt them to the user's discipline.
 
+Plain-language version for prospective users: `docs/INTERVIEW-QUESTIONS.md` — edit both when questions change.
+
 ## A. Identity, positioning, constraints
 1. Name, city/state (or country), email, phone, LinkedIn, any portfolio/lab site.
 2. Current title and employer; career stage (grad student, postdoc, early-career, established pivoting, …).

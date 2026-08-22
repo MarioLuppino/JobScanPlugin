@@ -11,7 +11,8 @@ Three skills plus a data layer:
 - **`job-applications`** (drafter) — deconstruct posting → fit go/no-go → competency→evidence map → tailored
   résumé (edit a base) → cover letter (in your voice) → interview prep → file numbered folder + index row.
 - **`jobscan-onboarding`** (setup) — interview → generate your personal profile, digest, base résumés, voice
-  file, empty index; configure paths.
+  file, empty index; configure paths. The questions it asks are listed for readers in
+  [`INTERVIEW-QUESTIONS.md`](INTERVIEW-QUESTIONS.md).
 
 Data flow: `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** + index append).
 

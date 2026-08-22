@@ -6,6 +6,9 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
 ## [Unreleased]
 
 ### Added
+- `docs/INTERVIEW-QUESTIONS.md`: the onboarding interview written out for prospective users — all 44
+  questions in plain language, what to have ready, where answers are stored, and what setup produces. Linked
+  from the README so the interview is visible before install rather than only after it.
 - **ATS feed pipeline** (`plugins/jobscan/scripts/`). Pulls open roles directly from the public JSON
   job-board APIs of Greenhouse, Lever, SmartRecruiters, Ashby, Workable, Workday (CXS) and Paylocity. No API
   keys, no scraping. Includes zero-token title triage, dedup against the applied-index plus a persistent
