@@ -32,7 +32,18 @@ rather than regenerate, a single de-dup index instead of rescanning folders) and
 **You don't need to know how to code.** Everything below is typed into Claude Code's chat box — the same
 place you'd type a question — not into a terminal, and not into a file.
 
-**1. Add the plugin.** Send these two lines, one at a time:
+**0. Get Claude Code.** Skip this if you already use it. If you don't, install the **desktop app** — it's an
+ordinary application, and no terminal is involved at any point:
+
+- [Download for macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect) ·
+  [Download for Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect) ·
+  [all download options](https://code.claude.com/docs/en/desktop) (Linux, Windows on ARM, or if a link above
+  doesn't work)
+- Install it, open it, sign in, then click the **Code** tab.
+- **Windows only:** the Code tab needs [Git for Windows](https://git-scm.com/downloads/win) installed first.
+  Install it, then restart Claude.
+
+**1. Add the plugin.** In the chat box, send these two lines, one at a time:
 
 ```
 /plugin marketplace add MarioLuppino/JobScanPluggin
@@ -40,6 +51,10 @@ place you'd type a question — not into a terminal, and not into a file.
 ```
 /plugin install jobscan@jobscan
 ```
+
+In the desktop app you can also do this without typing a command: click **+** next to the prompt box →
+**Plugins** → **Add plugin**. And if you'd rather not do either, ask Claude in plain words — *"add the plugin
+marketplace at MarioLuppino/JobScanPluggin, then install the jobscan plugin"* — and it will do it for you.
 
 **2. Do the setup interview, once.** Send:
 
@@ -70,9 +85,9 @@ Run my weekly job search
 
 ## What you actually need
 
-**Microsoft Word or Apple Pages.** That's the entire software requirement. Résumés and cover letters arrive
-as `.docx` files you open and edit in whichever one you already have, and both export a PDF when a job portal
-insists on one. No converters, no toolchains, no programming languages.
+**Claude Code, and Microsoft Word or Apple Pages.** That's the whole list. Résumés and cover letters arrive
+as `.docx` files you open and edit in whichever office app you already have, and both export a PDF when a job
+portal insists on one. No converters, no toolchains, no programming languages.
 
 You never have to open a terminal, edit a configuration file, or run a command. Where setup needs something
 installed, Claude installs it and tells you in a sentence what it did.

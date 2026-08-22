@@ -14,6 +14,11 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
   is instructed to *revise* the remaining questions against what the CV said — using the user's vocabulary,
   dropping questions that don't apply, and sharpening ambiguous ones — rather than reading a fixed script.
   Answering all 44 questions independently remains a first-class path, offered explicitly at the start.
+- **Install step 0 — getting Claude Code.** The README previously assumed the reader already had it, which is
+  the one prerequisite no amount of in-plugin wording can soften: the CLI is a terminal application. Step 0
+  now points at the desktop app, which installs plugins without a terminal, notes the Git-for-Windows
+  requirement for its Code tab, and gives two non-command ways to install the plugin — the desktop plugin
+  browser, or simply asking Claude to add the marketplace in plain words.
 - `docs/INTERVIEW-QUESTIONS.md`: the onboarding interview written out for prospective users — all 44
   questions in plain language, what to have ready, where answers are stored, and what setup produces. Linked
   from the README so the interview is visible before install rather than only after it.

@@ -62,7 +62,8 @@ unchanged.
 
 ## 5. Prerequisites
 
-- A Claude surface with **Agent Skills** support (Claude Code CLI or Desktop).
+- A Claude surface with **Agent Skills** support. The **desktop app** is the path for non-technical users —
+  it installs plugins without a terminal — and the CLI works identically.
 - **Firecrawl** (recommended) for JS portals + structured extraction; graceful fallback to built-in
   fetch/search + browser tools without it.
 - **Node.js** *only* for the optional `scripts/` ATS pipeline. Onboarding installs it for the user, and skips
