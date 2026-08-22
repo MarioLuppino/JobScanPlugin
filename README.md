@@ -6,8 +6,9 @@ for, scores and ranks them into a digest, and — on your selection — drafts A
 cover letters. It **prepares packets; it never submits applications.**
 
 Built for research-to-industry transitions and designed to adapt to any field — plant pathology, data
-science, ecology, whatever your profile is. A guided onboarding skill interviews you and builds your candidate
-profile, so you don't start from a blank file.
+science, ecology, whatever your profile is. A guided onboarding skill reads your CV, interviews you about
+what it can't know, and builds your candidate profile, so you don't start from a blank file. **No coding
+required at any point** — if something needs installing, Claude installs it.
 
 ## What's in the box
 
@@ -17,9 +18,10 @@ Two cooperating skills plus onboarding:
   a top ~10, writes a dated digest, and stops.
 - **`job-applications`** — the *drafter*. Maps an employer's competencies to your evidence and produces a
   tailored résumé + cover letter (`.docx`) and interview prep.
-- **`jobscan-onboarding`** — a one-time guided interview that generates your personal `profile.md`, its
-  compressed `profile-core.md` digest, per-tier base résumés, a voice file, and an empty applied-index. You
-  can read [every question it asks](docs/INTERVIEW-QUESTIONS.md) before installing anything.
+- **`jobscan-onboarding`** — a one-time setup that starts from your CV, asks only what the CV can't answer,
+  and generates your personal `profile.md`, its compressed `profile-core.md` digest, per-tier base résumés, a
+  voice file, and an empty applied-index. You can read [every question it asks](docs/INTERVIEW-QUESTIONS.md)
+  before installing anything.
 
 It is built around **token-efficiency** (a compressed profile digest, per-tier résumé scaffolds you *edit*
 rather than regenerate, a single de-dup index instead of rescanning folders) and **verification discipline**
@@ -30,7 +32,18 @@ rather than regenerate, a single de-dup index instead of rescanning folders) and
 **You don't need to know how to code.** Everything below is typed into Claude Code's chat box — the same
 place you'd type a question — not into a terminal, and not into a file.
 
-**1. Add the plugin.** Send these two lines, one at a time:
+**0. Get Claude Code.** Skip this if you already use it. If you don't, install the **desktop app** — it's an
+ordinary application, and no terminal is involved at any point:
+
+- [Download for macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect) ·
+  [Download for Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect) ·
+  [all download options](https://code.claude.com/docs/en/desktop) (Linux, Windows on ARM, or if a link above
+  doesn't work)
+- Install it, open it, sign in, then click the **Code** tab.
+- **Windows only:** the Code tab needs [Git for Windows](https://git-scm.com/downloads/win) installed first.
+  Install it, then restart Claude.
+
+**1. Add the plugin.** In the chat box, send these two lines, one at a time:
 
 ```
 /plugin marketplace add MarioLuppino/JobScanPluggin
@@ -39,21 +52,30 @@ place you'd type a question — not into a terminal, and not into a file.
 /plugin install jobscan@jobscan
 ```
 
+In the desktop app you can also do this without typing a command: click **+** next to the prompt box →
+**Plugins** → **Add plugin**. And if you'd rather not do either, ask Claude in plain words — *"add the plugin
+marketplace at MarioLuppino/JobScanPluggin, then install the jobscan plugin"* — and it will do it for you.
+
 **2. Do the setup interview, once.** Send:
 
 ```
 Run jobscan onboarding
 ```
 
-Claude then interviews you about your background, what you're looking for, and where to keep your files —
-conversationally, a few questions at a time. It's 44 questions, so set aside a real block of time and have
-your CV handy.
+**Have your CV or résumé ready.** It's the first thing Claude asks for — drag the file into the chat — and
+it answers 19 of the interview's 44 questions on its own. You confirm what it read, answer the 22 no CV can
+know (salary floor, where you'll live, what you don't want to be sent, how you like to write), and Claude
+detects the last few itself.
 
-> 📋 **See the questions first:** [What the setup interview asks](docs/INTERVIEW-QUESTIONS.md) — the full
-> list in plain language, plus what to have ready before you start.
+Would rather answer everything yourself? Ask for the full list and write your answers anywhere — a Word or
+Pages document, an email to yourself, a photo of handwritten notes — then hand the file over.
 
-Your answers become files on **your own computer**, in a folder you choose (the default is
-`~/.claude/jobscan-data/`) plus an archive folder for your applications. Nothing is uploaded here.
+> 📋 **See the questions first:** [What the setup interview asks](docs/INTERVIEW-QUESTIONS.md) — all 44 in
+> plain language, which ones your CV answers for you, and what to have ready.
+
+Your answers become files on **your own computer**, in a folder you choose — "my Documents folder" is a
+perfectly good answer, and Claude sorts out the rest — plus an archive folder for your applications. Nothing
+is uploaded here.
 
 **3. Run your first scan.** Once setup finishes, send:
 
@@ -61,14 +83,24 @@ Your answers become files on **your own computer**, in a folder you choose (the 
 Run my weekly job search
 ```
 
-## Optional but recommended
+## What you actually need
 
-- **[Firecrawl](https://www.firecrawl.dev/) plugin/API key** — lets the scanner read JavaScript-rendered
-  government portals (NEOGOV, Workday, USAJOBS, CalCareers) cheaply and do server-side posting→summary
-  extraction. Without it, the system falls back to built-in web fetch/search + browser tools.
-- **A Markdown→`.docx` path** — the drafter writes packets in Markdown then renders Word files. Any reliable
-  path works (pandoc, the Claude `docx` skill, R's `officer` package, or Word/Docs).
-- **A scheduler** — to run the scan weekly unattended.
+**Claude Code, and Microsoft Word or Apple Pages.** That's the whole list. Résumés and cover letters arrive
+as `.docx` files you open and edit in whichever office app you already have, and both export a PDF when a job
+portal insists on one. No converters, no toolchains, no programming languages.
+
+You never have to open a terminal, edit a configuration file, or run a command. Where setup needs something
+installed, Claude installs it and tells you in a sentence what it did.
+
+Three optional extras, each of which Claude offers during setup and each of which you can decline:
+
+- **[Firecrawl](https://www.firecrawl.dev/)** — makes JavaScript-heavy government portals (NEOGOV, Workday,
+  USAJOBS, CalCareers) cheaper and more reliable to read. Without it the scanner falls back to ordinary web
+  search and still works.
+- **A faster scanner.** Claude can pull openings straight from employers' own job boards instead of searching
+  for them — far cheaper and more complete. It needs Node.js, which Claude installs for you. Decline it and
+  the scan uses web search instead.
+- **A weekly schedule**, so the scan runs without you having to ask.
 
 ## Already have skills named `job-search` / `job-applications`?
 
@@ -81,9 +113,10 @@ enough to confirm it loads, or fork it and rename the skills.
 
 ## Privacy
 
-**This repo ships methodology only.** Your real profile, résumés, digests, and application archive are
-generated locally and are git-ignored — they never enter the repository. When adapting or forking, keep it
-that way: share the machine, never the career data.
+**This project ships the method, never anyone's career data.** Your profile, résumés, digests, and
+application archive are created on your own machine and stay there. Nothing you tell Claude during setup is
+published here, and the project is configured to refuse to commit those files even if you're working inside a
+copy of it. When adapting or forking, keep it that way: share the machine, never the career data.
 
 ## Adapting to your field
 

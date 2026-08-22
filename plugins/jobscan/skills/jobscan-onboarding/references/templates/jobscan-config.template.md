@@ -10,7 +10,7 @@ archive_path: {{ARCHIVE_PATH}}  # where numbered application folders, Job Search
 ```
 
 ## Field/search overrides (optional)
-- markdown_to_docx: {{e.g. pandoc | docx-skill | R-officer | word}}
+- word_or_pages: {{word | pages}}   # which app they edit documents in; both open .docx
 - firecrawl: {{connected | not-connected}}
 - split_quota: {{e.g. 5 domestic / 5 international, or none}}
 - fit_floor: {{e.g. 50}}

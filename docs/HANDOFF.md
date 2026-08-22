@@ -10,8 +10,9 @@ Three skills plus a data layer:
 - **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → stop.
 - **`job-applications`** (drafter) — deconstruct posting → fit go/no-go → competency→evidence map → tailored
   résumé (edit a base) → cover letter (in your voice) → interview prep → file numbered folder + index row.
-- **`jobscan-onboarding`** (setup) — interview → generate your personal profile, digest, base résumés, voice
-  file, empty index; configure paths. The questions it asks are listed for readers in
+- **`jobscan-onboarding`** (setup) — read the user's CV → pre-fill what it answers → interview only the gaps
+  → generate your personal profile, digest, base résumés, voice file, empty index; configure paths. The
+  questions are tagged `[CV]` / `[ASK]` / `[AUTO]` in `intake-questionnaire.md` and listed for readers in
   [`INTERVIEW-QUESTIONS.md`](INTERVIEW-QUESTIONS.md).
 
 Data flow: `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** + index append).
@@ -61,10 +62,14 @@ unchanged.
 
 ## 5. Prerequisites
 
-- A Claude surface with **Agent Skills** support (Claude Code CLI or Desktop).
+- A Claude surface with **Agent Skills** support. The **desktop app** is the path for non-technical users —
+  it installs plugins without a terminal — and the CLI works identically.
 - **Firecrawl** (recommended) for JS portals + structured extraction; graceful fallback to built-in
   fetch/search + browser tools without it.
-- A **Markdown→.docx** path (pandoc, a docx skill, R `officer`, or Word/Docs).
+- **Node.js** *only* for the optional `scripts/` ATS pipeline. Onboarding installs it for the user, and skips
+  the pipeline entirely if they'd rather not — the scan falls back to web search.
+- **Microsoft Word or Apple Pages** to open the `.docx` packets. Files are produced by the `docx` skill; no
+  converter, toolchain, or programming language is required at any point.
 - A **scheduler** if you want the weekly run unattended.
 
 ## 6. Non-negotiable rules (carried into the skills)
