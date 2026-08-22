@@ -3,6 +3,14 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+- Install instructions and the plugin `homepage` pointed at `MarioLuppino/JobScanPluggin`, the repository's
+  name before it was renamed to `JobScanPlugin`. GitHub's rename redirect kept them working, but a redirect
+  is not a guarantee: were the old name ever claimed by another account, `/plugin marketplace add` would
+  resolve somewhere else entirely.
+
 ## [0.2.0] - 2026-08-22
 
 ### Added

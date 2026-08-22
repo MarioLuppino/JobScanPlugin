@@ -46,7 +46,7 @@ ordinary application, and no terminal is involved at any point:
 **1. Add the plugin.** In the chat box, send these two lines, one at a time:
 
 ```
-/plugin marketplace add MarioLuppino/JobScanPluggin
+/plugin marketplace add MarioLuppino/JobScanPlugin
 ```
 ```
 /plugin install jobscan@jobscan
@@ -54,7 +54,7 @@ ordinary application, and no terminal is involved at any point:
 
 In the desktop app you can also do this without typing a command: click **+** next to the prompt box →
 **Plugins** → **Add plugin**. And if you'd rather not do either, ask Claude in plain words — *"add the plugin
-marketplace at MarioLuppino/JobScanPluggin, then install the jobscan plugin"* — and it will do it for you.
+marketplace at MarioLuppino/JobScanPlugin, then install the jobscan plugin"* — and it will do it for you.
 
 **2. Do the setup interview, once.** Send:
 
