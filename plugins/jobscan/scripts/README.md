@@ -10,6 +10,12 @@ zero API cost, ~87% rejected before anything reached a context window.**
 
 No API keys. No scraping. No paid service.
 
+> **Not something the user has to run.** Onboarding sets this up *for* them: Claude writes both config files
+> from the interview answers, installs Node if it's missing, and runs the commands below itself. The only
+> input a non-technical user gives is a list of employers they'd like to work for. If they'd rather not have
+> Node installed, the whole pipeline is skipped and the scan falls back to web search. This page is for
+> maintainers and anyone adapting the pipeline.
+
 ## Quick start
 
 ```bash

@@ -40,6 +40,7 @@ the content is aimed at the posting. **So: tailor to the target, and make it ATS
 
 ## Production
 
-Draft/tailor in Markdown, then render to an ATS-safe Word file via your Markdown→docx path (pandoc, a docx
-skill, R `officer`, or Word/Docs) using the single-column, standard-heading rules above. Keep the tailored
+Draft/tailor in Markdown, then produce an ATS-safe Word file with the `docx` skill, using the single-column,
+standard-heading rules above. The user opens and edits it in Microsoft Word or Apple Pages; if a portal wants
+PDF, they export one from there (see `docx-generation.md`). Keep the tailored
 derivative in the application's numbered folder alongside its cover letter.

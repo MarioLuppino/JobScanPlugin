@@ -86,7 +86,10 @@ applicant tracking system with a free public JSON endpoint; one request returns 
 registered employer, applies zero-token title triage, and screens against the applied-index and seen-URL
 cache. On a real 24-employer registry this returned ~1,950 postings for zero API cost with ~87% rejected
 before anything reached context. Only then spend search budget on what the registry does not cover.
-Setup and the per-ATS details are in `scripts/README.md`. **Workday is searchable** via its CXS endpoint
+Setup and the per-ATS details are in `scripts/README.md`. **If the pipeline isn't set up** — no
+`employers.json`, or Node isn't installed because the user declined it at onboarding — skip STEP 0 silently
+and search the boards directly. Say once that the scan is slower and costs more this way; never stop to ask
+the user to install something mid-scan. **Workday is searchable** via its CXS endpoint
 (`searchText` filters server-side) despite having no sitemap; `HTTP_422` there means a wrong tenant/site
 path, `HTTP_500` means the path is right and the tenant is erroring.
 

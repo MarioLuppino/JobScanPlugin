@@ -1,65 +1,60 @@
-# Generating ATS-safe `.docx` packets
+# Producing the Word file
 
-Draft and iterate in Markdown (fast, easy to edit in chat), then render the finalized text to Word. Pick one
-path — in recommended order:
+Draft and iterate in Markdown — it's fast to edit in chat — then produce the finished **`.docx`**. The user
+opens it in **Microsoft Word or Apple Pages**. Nothing else is needed and nothing has to be installed: no
+converters, no command-line tools, no programming languages.
 
-## 1. The `docx` skill (recommended default — zero setup)
+## 1. Make the file with the `docx` skill (default)
 
-If the Claude `docx` skill is available (it ships with Claude Code), use it: hand it the finalized Markdown
-and ask for a single-column, standard-heading Word file. No local toolchain needed, and it handles headings,
-bullets, and page setup. **This is the recommended default for most users.**
+The Claude `docx` skill ships with Claude Code. Hand it the finalized Markdown and ask for a single-column
+Word file with standard headings. Save it straight into the application's numbered folder.
 
-## 2. R `officer` (portable, deterministic, good for batches)
+Respect the **minimum font size** the user set at onboarding. If they didn't set one, use 11 pt body text
+(10.5 pt is the floor worth going to when a page is nearly full — below that, print becomes hard to read and
+some human screeners bounce it).
 
-If you have R with the `officer` package, this produces clean single-column ATS-safe output and is easy to
-script for multiple packets. Reusable helper — save as `build-packet.R` and adapt:
+## 2. If the `docx` skill isn't available — the paste-in path
 
-```r
-library(officer)
+Don't reach for a converter or ask the user to install one. Give them the résumé as clean text and these
+steps. It takes about two minutes and works identically for a first résumé or a tailored one.
 
-# fp_* define fonts/paragraphs; keep it single-column, black text, standard fonts.
-make_resume <- function(sections, out_path, base_size = 11) {
-  doc <- read_docx()
-  body_par  <- fp_text(font.size = base_size, font.family = "Calibri")
-  head_par  <- fp_text(font.size = base_size + 2, bold = TRUE, font.family = "Calibri")
-  name_par  <- fp_text(font.size = base_size + 6, bold = TRUE, font.family = "Calibri")
+**In Word:** new blank document → paste the text → select all → set the font (Calibri, Arial, or Helvetica)
+and size → Layout → Margins → Normal (1 inch) → apply **Heading 2** to each section title from the Home
+ribbon's style gallery → File → Save As → **Word Document (.docx)**.
 
-  for (s in sections) {
-    if (s$type == "name")    doc <- body_add_fpar(doc, fpar(ftext(s$text, name_par)))
-    if (s$type == "contact") doc <- body_add_fpar(doc, fpar(ftext(s$text, body_par)))
-    if (s$type == "heading") doc <- body_add_fpar(doc, fpar(ftext(s$text, head_par)),
-                                                   fp_p = fp_par(padding.top = 8))
-    if (s$type == "body")    doc <- body_add_fpar(doc, fpar(ftext(s$text, body_par)))
-    if (s$type == "bullet")  doc <- body_add_fpar(doc, fpar(ftext(paste0("• ", s$text), body_par)),
-                                                   fp_p = fp_par(padding.left = 12))
-  }
-  # US Letter + 1" margins
-  doc <- body_set_default_section(doc, prop_section(
-    page_size = page_size(width = 8.5, height = 11, orient = "portrait"),
-    page_margins = page_mar(top = 1, bottom = 1, left = 1, right = 1)))
-  print(doc, target = out_path)
-}
+**In Pages:** new Blank document → paste the text → select all → set font and size in the Format sidebar →
+Document → Margins → 1 inch → apply the **Heading** paragraph style to each section title → File → **Export
+To → Word**.
 
-# Example:
-# make_resume(list(
-#   list(type="name", text="Jordan Sample, Ph.D."),
-#   list(type="contact", text="Portland, OR · jordan@example.com · 555-0100"),
-#   list(type="heading", text="Summary"),
-#   list(type="body", text="Plant pathologist ..."),
-#   list(type="heading", text="Professional Experience"),
-#   list(type="bullet", text="Cultured and identified 4,000+ isolates ...")
-# ), out_path = "Resume - Diagnostic Mycologist.docx")
-```
+Tell the user exactly which lines are section headings rather than making them guess.
 
-Respect any **minimum font size** the user set at onboarding (`base_size`).
+## 3. When the portal demands a PDF
 
-## 3. Pandoc (if installed)
+Convert inside the app they already have — never a web converter, which puts a private résumé on someone
+else's server:
 
-`pandoc resume.md -o resume.docx --reference-doc=ats-reference.docx` with a single-column reference template.
-Simple, but you must supply an ATS-safe reference `.docx` for consistent styling.
+- **Word:** File → Save As → PDF *(on Windows: File → Export → Create PDF/XPS)*.
+- **Pages:** File → Export To → PDF.
 
-## Whichever path — the ATS rules are the same
+Both produce a text-based PDF that applicant tracking systems can read. Do **not** produce the PDF by
+scanning or photographing a printout — that PDF has no text layer and most ATS parsers score it as empty.
+
+## The Pages trap — worth warning the user about once
+
+Pages opens a `.docx` fine, but **saving in Pages produces a `.pages` file, which almost no employer can
+open.** If the user edits a packet in Pages, they must finish with **File → Export To → Word** before
+submitting, and keep the `.docx` as the copy in the application folder. Say this the first time a Mac user
+edits a packet, not every time.
+
+## If the user edits the file themselves
+
+Encourage it — they know their own history best. Ask them to say what they changed, so the same fix reaches
+`profile.md` and the tier's base résumé instead of being lost at the next tailoring pass. A correction that
+lives only in one submitted packet will be re-introduced as an error next week.
+
+## The ATS rules, whichever path made the file
 
 Single column · standard headings (Summary, Skills, Professional Experience, Education, Certifications,
-Publications) · black text · simple bullets · no tables/text boxes/graphics for parsed content · name and
-contact in the body, not headers/footers · submit `.docx` unless the posting requires a text-based PDF.
+Publications) · black text · simple round bullets · no tables, text boxes, columns, or graphics holding
+content that must be parsed · name and contact details in the body, never in the header or footer · submit
+`.docx` unless the posting requires PDF.
