@@ -3,7 +3,7 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
-## [Unreleased]
+## [0.2.0] - 2026-08-22
 
 ### Added
 - **CV-first onboarding.** Setup now opens by asking for the user's CV or résumé and any material that
@@ -63,6 +63,6 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
 - Pandoc, LibreOffice, `jq`, and `ripgrep` from the recommended local tooling. Word and Pages cover document
   conversion; the rest were agent conveniences presented as user prerequisites.
 
-## [0.1.0]
+## [0.1.0] - initial release
 - Initial release: `job-search`, `job-applications`, and `jobscan-onboarding` skills; field-agnostic
   references and fill-in templates; marketplace + plugin manifests; README and architecture guide.
