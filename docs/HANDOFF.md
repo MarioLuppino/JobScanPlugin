@@ -87,6 +87,14 @@ career data.
 ## 8. Contributing / updating
 
 Improvements to the methodology (a better rule, a new source category, a workflow refinement) are commits
-others can pull. Bump the version in `plugins/jobscan/.claude-plugin/plugin.json` and
-`.claude-plugin/marketplace.json` when you cut a release, and record the change in `CHANGELOG.md`. Keep
-version history in the changelog only — never annotate the working files with edit or version notes.
+others can pull.
+
+**Cutting a release: bump `version` in `plugins/jobscan/.claude-plugin/plugin.json`, and move the
+`[Unreleased]` section of `CHANGELOG.md` under the new version heading.** That one field is the only version
+this project keeps — `.claude-plugin/marketplace.json` deliberately carries none, so the two can't drift.
+
+The bump is not bookkeeping. Claude Code **pins an installed plugin to that string**: push all the commits
+you like, and anyone who already installed JobScan keeps their cached copy until `version` changes. Forgetting
+it means shipping to no one.
+
+Keep version history in the changelog only — never annotate the working files with edit or version notes.
