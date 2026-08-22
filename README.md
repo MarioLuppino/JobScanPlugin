@@ -18,7 +18,8 @@ Two cooperating skills plus onboarding:
 - **`job-applications`** — the *drafter*. Maps an employer's competencies to your evidence and produces a
   tailored résumé + cover letter (`.docx`) and interview prep.
 - **`jobscan-onboarding`** — a one-time guided interview that generates your personal `profile.md`, its
-  compressed `profile-core.md` digest, per-tier base résumés, a voice file, and an empty applied-index.
+  compressed `profile-core.md` digest, per-tier base résumés, a voice file, and an empty applied-index. You
+  can read [every question it asks](docs/INTERVIEW-QUESTIONS.md) before installing anything.
 
 It is built around **token-efficiency** (a compressed profile digest, per-tier résumé scaffolds you *edit*
 rather than regenerate, a single de-dup index instead of rescanning folders) and **verification discipline**
@@ -26,22 +27,35 @@ rather than regenerate, a single de-dup index instead of rescanning folders) and
 
 ## Install
 
-```bash
-# In Claude Code:
+**You don't need to know how to code.** Everything below is typed into Claude Code's chat box — the same
+place you'd type a question — not into a terminal, and not into a file.
+
+**1. Add the plugin.** Send these two lines, one at a time:
+
+```
 /plugin marketplace add MarioLuppino/JobScanPluggin
+```
+```
 /plugin install jobscan@jobscan
 ```
 
-Then run onboarding once:
+**2. Do the setup interview, once.** Send:
 
 ```
 Run jobscan onboarding
 ```
 
-Answer the interview (see [`docs/HANDOFF.md`](docs/HANDOFF.md) Part 1 for the questions). It writes your
-personal files to a location you choose (default `~/.claude/jobscan-data/`) and configures your archive path.
+Claude then interviews you about your background, what you're looking for, and where to keep your files —
+conversationally, a few questions at a time. It's 44 questions, so set aside a real block of time and have
+your CV handy.
 
-After that:
+> 📋 **See the questions first:** [What the setup interview asks](docs/INTERVIEW-QUESTIONS.md) — the full
+> list in plain language, plus what to have ready before you start.
+
+Your answers become files on **your own computer**, in a folder you choose (the default is
+`~/.claude/jobscan-data/`) plus an archive folder for your applications. Nothing is uploaded here.
+
+**3. Run your first scan.** Once setup finishes, send:
 
 ```
 Run my weekly job search
