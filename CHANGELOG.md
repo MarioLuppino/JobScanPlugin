@@ -3,6 +3,31 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [Unreleased]
+
+### Changed
+- **Existing `job-search` / `job-applications` skills are now an integration case, not a reason to stay
+  away.** The README section previously told anyone with personal skills of those names not to install the
+  plugin in the environment that runs their real search. That advice rested on a name collision that doesn't
+  exist: Claude Code namespaces plugin skills, so JobScan's arrive as `/jobscan:job-search` and the personal
+  skills keep their bare names, their files, and their behaviour. The section now covers the overlap that is
+  real — both descriptions being listed to Claude, so a vague request matches two skills — and its three
+  fixes (ask specifically, sharpen the personal skill's `description`, or set `disable-model-invocation:
+  true`), noting that `skillOverrides` is not a lever because it doesn't apply to plugin skills. It then
+  gives four ways to combine the two: take the generated data layer and point existing skills at the fixed
+  config path, split the workflow between finder and drafter, borrow individual reference files, or keep
+  them apart in a scratch project.
+- **Onboarding checks for those skills before it asks anything.** It looks in `~/.claude/skills/` and the
+  project's `.claude/skills/`, treats anything it finds as the production system (never edited, renamed, or
+  deleted without permission), and offers a choice: build the data layer and configure *their* skill to read
+  it, or run the full setup. Step 6 gained the corresponding branch — path resolution plus sources written
+  into their `SKILL.md`, in their structure, with JobScan's verification and formatting rules offered rather
+  than imposed. Existing profiles, résumés, and archives are read as interview material instead of being
+  regenerated over.
+- **`HANDOFF.md` documents the integration seam** in a new §8: the fixed config path at
+  `~/.claude/jobscan-data/jobscan-config.md` is what makes the data layer skill-agnostic, so onboarding has
+  two legitimate exit points and both should keep working in any fork.
+
 ## [0.2.1] - 2026-08-24
 
 ### Fixed
