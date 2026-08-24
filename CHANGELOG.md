@@ -20,7 +20,15 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
 ### Changed
 - **`CLAUDE.md`: unfinished work goes in the handoff document, never in the session.** The handoff rule now
   states plainly that no "what's left", next-steps list, or task list belongs in chat — that content is the
-  handoff document's job, and reporting what was *done* stays brief.
+  handoff document's job, and reporting what was *done* stays brief. The convention itself moved into a real
+  skill at `.claude/skills/handoff/`, so `CLAUDE.md` states the rule and points at the procedure instead of
+  carrying both.
+- **The handoff skill publishes links, not files.** `/handoff` writes the document as an Artifact and hands
+  back a URL, because a file written inside a session container is wiped with the container and a handoff
+  that evaporates before the next chat opens is worthless. `references/layout.md` fixes the page format —
+  state grid, eyebrow-plus-heading sections, status colours, dark-mode tokens — so successive handoffs read
+  as one series. It is a project skill: it loads for anyone working in this repository, cloud sessions
+  included.
 
 Docs only; no plugin content changed, so no version bump.
 
