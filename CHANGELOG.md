@@ -3,6 +3,32 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [0.2.1] - 2026-08-24
+
+### Fixed
+- **Firecrawl now has an install path, and it needs no sign-up.** The README recommended Firecrawl without
+  saying how a non-coder gets it, and the onboarding skill only mentioned the fallback when it was absent.
+  Both now route through Firecrawl's keyless hosted MCP server at `https://mcp.firecrawl.dev/v2/mcp` — no
+  account, no API key, and no second plugin marketplace to add. Onboarding runs the connection itself
+  (`claude mcp add --scope user --transport http firecrawl …`), consistent with the rule that commands belong
+  to Claude. A free API key, or the `firecrawl@claude-plugins-official` plugin from Anthropic's own
+  marketplace, is offered only as an upgrade for higher limits, never as the entry point.
+- **Firecrawl tool names were wrong throughout.** The skills referenced `firecrawl-scrape`, `firecrawl-search`,
+  `firecrawl-map`, `firecrawl-agent`, `firecrawl-interact` and `firecrawl-monitor`; the server actually
+  exposes `firecrawl_scrape`, `firecrawl_search`, `firecrawl_parse`, `firecrawl_map`, `firecrawl_agent`,
+  `firecrawl_interact` and `firecrawl_monitor_create` (underscores). Every reference is corrected, so the
+  guidance names tools that exist.
+- **Keyless vs. keyed capabilities are now distinguished.** `firecrawl_scrape`, `firecrawl_search` and
+  `firecrawl_parse` work without a key and cover what the scan needs; `firecrawl_map`, `firecrawl_agent` and
+  the monitors require one. The job-search skill previously listed `firecrawl-map` and `firecrawl-agent` as
+  preferred tooling, which would have failed silently for any user on the keyless tier.
+- **The desktop plugin browser cannot add a third-party marketplace.** Claude Code's documentation states the
+  browser lists plugins "from your configured marketplaces," so it cannot perform JobScan's first install
+  step. The README's step 1 claimed otherwise; it now leads with the plain-words request Claude executes
+  itself, keeps the two slash commands as the typed alternative, and says plainly what the desktop browser
+  can and cannot do. The 0.2.0 changelog entry describing the browser as one of "two non-command ways to
+  install the plugin" was mistaken on that point.
+
 ## [0.2.0] - 2026-08-22
 
 ### Added
