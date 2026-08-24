@@ -32,6 +32,30 @@ That means, throughout:
 - **Word or Pages, nothing else.** Documents are produced as `.docx` and opened in Microsoft Word or Apple
   Pages. Never offer, mention, or ask about Pandoc, LibreOffice, R, or a "Markdown to docx path."
 
+## Before Step 1 — check whether they already run their own job-search skills
+
+Look for `job-search` or `job-applications` directories in `~/.claude/skills/` and the project's
+`.claude/skills/`. If either exists, **theirs is the production system.** JobScan's copies are namespaced
+(`/jobscan:job-search`) and don't replace it — never edit, rename, or delete a skill of theirs, and never
+touch one at all without asking first.
+
+Say that in a sentence, then offer the choice:
+
+- **"Build the files, leave my skills alone"** — the default, and the right answer for anyone with a routine
+  that already works. Do Steps 1–5 and 7 as written, but in Step 6 configure **their** skill, not the
+  plugin's (see that step). The generated files are plain Markdown at a fixed, discoverable path; any skill
+  can read them.
+- **"Use JobScan's skills instead"** — full setup as written. Tell them their own skills keep the bare
+  `/job-search` name and still work, but that a vague request now matches two descriptions. Offer the fix:
+  sharpen their skill's `description` so it names what's specific to it, or add
+  `disable-model-invocation: true` to its frontmatter so only they invoke it by name. Don't offer
+  `skillOverrides` — it has no effect on plugin skills.
+
+**If they already have a profile, résumés, or an application archive from that routine, read them; don't
+regenerate over them.** Existing material answers most `[CV]` questions and often the voice file too. Where
+their file and a template disagree, keep their file — offer to add anything the template has that theirs
+lacks, and write anything genuinely new alongside rather than in place of it.
+
 ## Step 1 — Ask for their CV before you ask them anything else
 
 Opening with question 1 of 44 makes someone re-type a career they already wrote down. Start here instead:
@@ -139,6 +163,19 @@ becomes **enough genuinely applyable roles to clear the quota**, not a tidy rank
 Edit the **`job-search` skill's `references/sources.md`** working copy (or a user override) to swap in the
 user's field employers, boards, APIs, and domain keywords (keep the source categories). Encode the
 asymmetric-keyword pairs that must both be searched.
+
+**If they chose to keep their own skills** (see the check before Step 1), configure those instead. Ask
+permission, show what you're changing, and make two edits to their `SKILL.md`:
+
+1. **Path resolution**, so their skill finds what you just generated — read
+   `~/.claude/jobscan-data/jobscan-config.md` for `data_path` and `archive_path`, then read
+   `<data_path>/profile-core.md` for the profile.
+2. **Sources** — the same field employers, boards, and keywords, written into whatever file their skill
+   already uses for them, matching its structure rather than JobScan's.
+
+Then offer, without pushing, anything of JobScan's their routine doesn't already have: the two-gate
+live-verification rule, the ATS and résumé-format rules, the writing playbook, the digest template, or
+`Applied Index.md` as a single dedup read. Their skill stays the one that runs.
 
 **Then set up the ATS feed pipeline — the highest-value step in onboarding.** It pulls open roles straight
 from employers' job-board APIs, which is far cheaper and more complete than keyword search. Describe it to

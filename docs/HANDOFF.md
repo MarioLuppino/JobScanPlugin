@@ -86,7 +86,26 @@ Publishing distributes content. **Never commit a filled profile, résumé, diges
 `.gitignore` excludes them; keep it that way in any fork. The value shared is the methodology, never the
 career data.
 
-## 8. Contributing / updating
+## 8. Coexisting with a user's own job-search skills
+
+Some users arrive with personal skills already named `job-search` / `job-applications`. That is not a
+collision to avoid — it's the integration case, and the architecture supports it because **the data layer,
+not the skills, is the product.**
+
+Claude Code namespaces plugin skills (`/jobscan:job-search`), so the plugin never takes a bare command name
+or shadows a personal skill; the only overlap is model-invoked triggering, which two skills with overlapping
+descriptions share. That is settled on the user's side — a more specific `description`, or
+`disable-model-invocation: true` — because `skillOverrides` doesn't apply to plugin skills.
+
+The integration seam is the fixed config path, `~/.claude/jobscan-data/jobscan-config.md`. Any skill that
+reads it resolves `data_path` and `archive_path` and can then use `profile-core.md`, the base résumés, the
+voice file, and `Applied Index.md`. Onboarding therefore has two exit points: generate the data layer and
+configure *their* skill to read it (§2's "generated locally" list, minus the plugin's own sources file), or
+run the full setup. Keep both working in any fork — a user who already has a routine should be able to take
+the profile pipeline without adopting the skills, and nothing generated should overwrite a file their routine
+already maintains.
+
+## 9. Contributing / updating
 
 Improvements to the methodology (a better rule, a new source category, a workflow refinement) are commits
 others can pull.
