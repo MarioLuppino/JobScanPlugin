@@ -3,6 +3,27 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [Unreleased]
+
+### Added
+- **"Keeping JobScan up to date" in the README.** Claude Code pins an installed plugin to its manifest
+  `version`, and background auto-update is off by default for any marketplace that isn't Anthropic's own —
+  JobScan's included. Users had no way to know a fix had shipped, or how to take it. The section gives the
+  plain-words ask ("Update my JobScan plugin"), the two typed commands behind it
+  (`/plugin marketplace update jobscan`, `/plugin update jobscan@jobscan`), and notes that installs from the
+  community marketplace do refresh in the background.
+- **`HANDOFF.md` §9 documents both distribution paths.** JobScan's own marketplace doesn't auto-update; the
+  community catalog pins a commit SHA but CI bumps that pin automatically as commits are pushed, so a merged
+  change reaches the catalog without a fresh submission (nightly sync, so allow a day). Either way the
+  `version` pin still gates delivery.
+
+### Changed
+- **`CLAUDE.md`: unfinished work goes in the handoff document, never in the session.** The handoff rule now
+  states plainly that no "what's left", next-steps list, or task list belongs in chat — that content is the
+  handoff document's job, and reporting what was *done* stays brief.
+
+Docs only; no plugin content changed, so no version bump.
+
 ## [0.2.2] - 2026-08-24
 
 ### Changed

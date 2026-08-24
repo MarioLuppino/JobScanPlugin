@@ -1,18 +1,26 @@
 # JobScan — working notes for Claude
 
-## Handoffs
+## Handoffs and unfinished work
 
-Handoffs go in a document, not in the chat. Publish the handoff as an Artifact
-and reply with the link and one line of context — nothing more. Do not also
-summarize the steps, the task list, or the reasoning in the session. Restating
-the document's contents in chat means it exists in two places and burns tokens
-for no gain.
+**Never write remaining work into the session.** No "what's left", no next-steps
+list, no task list, no "for a future session" paragraph in the chat. Every one of
+those belongs in a handoff document and nowhere else. This holds at the end of a
+task, when you run out of scope, and when you hand back mid-stream.
+
+Publish the handoff as an Artifact and reply with the link and one line of
+context — nothing more. Do not also summarize the steps, the task list, or the
+reasoning in the session. Restating the document's contents in chat means it
+exists in two places and burns tokens for no gain.
 
 The document is the deliverable: write it so it can be copied or pasted into a
 fresh chat and stand on its own, with no session context needed to act on it.
+Anything a next session must know — open decisions, blocked steps, environment
+traps, what was deliberately left undone and why — goes in the document.
 
 When updating an existing handoff, republish to the same URL and reply with that
 link and what changed in a sentence.
+
+Reporting what you *did* is not a handoff; that stays in the chat, brief.
 
 ## Invariant — the 44 interview questions
 
