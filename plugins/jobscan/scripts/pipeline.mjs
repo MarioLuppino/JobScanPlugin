@@ -14,18 +14,15 @@
  *   node pipeline.mjs --quota 3        # applications required per week
  *   node pipeline.mjs --followup 14    # days before an application counts as stale
  *
- * Paths: $JOBSCAN_INDEX / $JOBSCAN_WORKLOG, else ./ then ../
+ * Paths: $JOBSCAN_INDEX / $JOBSCAN_WORKLOG, else archive_path in
+ * ~/.claude/jobscan-data/jobscan-config.md, else the working directory.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { archivePath } from './paths.mjs';
 
-const find = (name) => {
-  for (const p of [join(process.cwd(), name), join(process.cwd(), '..', name)]) if (existsSync(p)) return p;
-  return join(process.cwd(), name);
-};
-const INDEX = process.env.JOBSCAN_INDEX || find('Applied Index.md');
-const LOG = process.env.JOBSCAN_WORKLOG || find('Work Search Log.md');
+const INDEX = archivePath('Applied Index.md', 'JOBSCAN_INDEX');
+const LOG = archivePath('Work Search Log.md', 'JOBSCAN_WORKLOG');
 
 const arg = (flag, dflt) => {
   const i = process.argv.indexOf(flag);

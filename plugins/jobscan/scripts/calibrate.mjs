@@ -19,20 +19,15 @@
  *   node calibrate.mjs
  *   node calibrate.mjs --index "path/to/Applied Index.md"
  *
- * Index path: --index, else $JOBSCAN_INDEX, else ./Applied Index.md, else ../
+ * Index path: --index, else $JOBSCAN_INDEX, else archive_path in
+ * ~/.claude/jobscan-data/jobscan-config.md, else the working directory.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { archivePath } from './paths.mjs';
 
-function defaultIndex() {
-  for (const p of [join(process.cwd(), 'Applied Index.md'), join(process.cwd(), '..', 'Applied Index.md')]) {
-    if (existsSync(p)) return p;
-  }
-  return join(process.cwd(), 'Applied Index.md');
-}
 const ai = process.argv.indexOf('--index');
-const INDEX = ai > -1 ? process.argv[ai + 1] : process.env.JOBSCAN_INDEX || defaultIndex();
+const INDEX = ai > -1 ? process.argv[ai + 1] : archivePath('Applied Index.md', 'JOBSCAN_INDEX');
 
 /** Below this many resolved outcomes, report data collection, not conclusions. */
 const MIN_SAMPLE = 8;
@@ -43,7 +38,9 @@ const NEGATIVE = /(reject|declin|no response|ghost|closed|withdraw|not select)/i
 function parseIndex(path) {
   if (!existsSync(path)) {
     console.error(`calibrate: no applied index at ${path}`);
-    console.error('Pass --index "path/to/Applied Index.md" or set JOBSCAN_INDEX.');
+    console.error('This is a PATH problem, not a finding about your record-keeping.');
+    console.error('Check archive_path in ~/.claude/jobscan-data/jobscan-config.md,');
+    console.error('or pass --index "path/to/Applied Index.md", or set JOBSCAN_INDEX.');
     process.exit(1);
   }
   const rows = [];

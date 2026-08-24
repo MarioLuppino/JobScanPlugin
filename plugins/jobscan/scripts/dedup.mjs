@@ -18,25 +18,17 @@
  *   cat candidates.json | node dedup.mjs --record       # also update the cache
  *   node dedup.mjs --stats                              # index/cache summary
  *
- * INDEX PATH: set JOBSCAN_INDEX to your "Applied Index.md". Defaults to
- * ./Applied Index.md, then ../Applied Index.md.
+ * PATHS: the applied index comes from $JOBSCAN_INDEX, else archive_path in
+ * ~/.claude/jobscan-data/jobscan-config.md, else the working directory. The
+ * seen-URL cache lives in <data_path>/ats/, never under the plugin root, which
+ * an update replaces. See paths.mjs.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readPath, writePath, archivePath } from './paths.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const CACHE_PATH = join(HERE, 'seen-urls.json');
-
-function resolveIndex() {
-  if (process.env.JOBSCAN_INDEX) return resolve(process.env.JOBSCAN_INDEX);
-  for (const p of [join(process.cwd(), 'Applied Index.md'), join(process.cwd(), '..', 'Applied Index.md')]) {
-    if (existsSync(p)) return p;
-  }
-  return join(process.cwd(), 'Applied Index.md');
-}
-const INDEX_PATH = resolveIndex();
+const CACHE_IN = readPath('seen-urls.json');
+const INDEX_PATH = archivePath('Applied Index.md', 'JOBSCAN_INDEX');
 
 const RECORD = process.argv.includes('--record');
 const STATS = process.argv.includes('--stats');
@@ -104,8 +96,8 @@ export function loadAppliedIndex(path = INDEX_PATH) {
 }
 
 const loadCache = () => {
-  if (!existsSync(CACHE_PATH)) return {};
-  try { return JSON.parse(readFileSync(CACHE_PATH, 'utf8')); } catch { return {}; }
+  if (!CACHE_IN) return {};
+  try { return JSON.parse(readFileSync(CACHE_IN.path, 'utf8')); } catch { return {}; }
 };
 
 const index = loadAppliedIndex();
@@ -158,8 +150,9 @@ process.stdin.on('end', () => {
 
   console.error(`dedup: ${cands.length} in -> new ${counts.new}, adjacent ${counts.adjacent}, duplicate ${counts.duplicate}, seen ${counts.seen}`);
   if (RECORD) {
-    writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2) + '\n');
-    console.error(`dedup: cache updated (${Object.keys(cache).length} entries)`);
+    const out = writePath('seen-urls.json');
+    writeFileSync(out, JSON.stringify(cache, null, 2) + '\n');
+    console.error(`dedup: cache updated (${Object.keys(cache).length} entries) at ${out}`);
   }
   console.log(JSON.stringify(out, null, 2));
 });

@@ -14,32 +14,32 @@
  *             domain title in a location you can't easily work); pull if needed
  *   exclude - wrong tier, wrong field, or fails a hard gate; never fetched
  *
- * CONFIGURE: copy triage-config.example.json to triage-config.json and edit it.
- * The example ships with generic defaults; the matchTitlePatterns are the ones
- * you must replace with your own field's titles.
+ * CONFIGURE: your triage-config.json lives in <data_path>/ats/ (see paths.mjs),
+ * NOT next to this file — the plugin folder is replaced on update. Onboarding
+ * writes it. The example here ships with generic defaults; the matchTitlePatterns
+ * are the ones that must be replaced with your own field's titles.
  *
  * Module:  import { triage, triageAll } from './triage.mjs'
  * CLI:     cat jobs.json | node triage.mjs [--verdict match,review]
  */
 
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const HERE = dirname(fileURLToPath(import.meta.url));
+import { readFileSync } from 'node:fs';
+import { readPath, ATS_DIR } from './paths.mjs';
 
 function loadConfig() {
-  const custom = join(HERE, 'triage-config.json');
-  const example = join(HERE, 'triage-config.example.json');
-  const path = existsSync(custom) ? custom : example;
-  if (path === example) {
+  const found = readPath('triage-config.json', 'triage-config.example.json');
+  if (!found) {
+    console.error('triage: no triage-config.json and no example to fall back on. Re-run jobscan-onboarding.');
+    process.exit(1);
+  }
+  if (found.isExample) {
     console.error(
       'triage: using triage-config.example.json (generic defaults).\n' +
-      '        Copy it to triage-config.json and replace matchTitlePatterns with your field\'s titles,\n' +
-      '        or almost nothing will match.'
+      `        Write your own to ${ATS_DIR}/triage-config.json with your field's\n` +
+      '        matchTitlePatterns, or almost nothing will match.'
     );
   }
-  const raw = JSON.parse(readFileSync(path, 'utf8'));
+  const raw = JSON.parse(readFileSync(found.path, 'utf8'));
   const re = (arr) => (arr || []).map((s) => new RegExp(s, 'i'));
   return {
     salaryFloor: typeof raw.salaryFloor === 'number' ? raw.salaryFloor : 0,

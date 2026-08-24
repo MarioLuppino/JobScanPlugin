@@ -112,7 +112,8 @@ quietly keeping it. And confirm the standing rules they want enforced:
 Ask in plain terms — "where should I keep your job-search files?" — and offer their Documents folder as the
 default. Two locations, which can be the same parent:
 
-- **Data path** — their personal files. Default `~/.claude/jobscan-data/`.
+- **Data path** — their personal files: profile, base résumés, voice file, their `sources.md`, and an
+  `ats/` folder for the scanner's config and caches. Default `~/.claude/jobscan-data/`.
 - **Archive path** — application folders, digests, and the applied index.
 
 Convert their answer into a real path yourself. On Windows, prefer a location near the drive root: deep
@@ -160,9 +161,12 @@ becomes **enough genuinely applyable roles to clear the quota**, not a tidy rank
 
 ## Step 6 — Field-specific search config (you do this, not them)
 
-Edit the **`job-search` skill's `references/sources.md`** working copy (or a user override) to swap in the
-user's field employers, boards, APIs, and domain keywords (keep the source categories). Encode the
-asymmetric-keyword pairs that must both be searched.
+**Write `<data_path>/sources.md`, never the plugin's copy.** Start from the `job-search` skill's
+`references/sources.md`, keep the source categories, and swap in the user's field employers, boards, APIs and
+domain keywords. Encode the asymmetric-keyword pairs that must both be searched. The plugin's own file stays
+untouched: it is replaced wholesale on `/plugin update`, so an edit made there is deleted the first time the
+user takes a new version. `job-search` reads `<data_path>/sources.md` first and falls back to the shipped
+default.
 
 **If they chose to keep their own skills** (see the check before Step 1), configure those instead. Ask
 permission, show what you're changing, and make two edits to their `SKILL.md`:
@@ -180,11 +184,30 @@ live-verification rule, the ATS and résumé-format rules, the writing playbook,
 **Then set up the ATS feed pipeline — the highest-value step in onboarding.** It pulls open roles straight
 from employers' job-board APIs, which is far cheaper and more complete than keyword search. Describe it to
 the user as "a faster, cheaper scan," ask only **which employers they'd love to work for**, and do the rest
-yourself. In `plugins/jobscan/scripts/`: copy `triage-config.example.json` → `triage-config.json` and replace
-`matchTitlePatterns` with the job titles from question 35 (without this almost nothing matches), copy
-`employers.example.json` → `employers.json` with their employers, then run `node discover-ats.mjs` and, for
-large employers, `node discover-workday.mjs`. Verify with `node fetch-ats.mjs --summary` and
-`node test-triage.mjs`. See `scripts/README.md`.
+yourself.
+
+**Two directories, and never mix them.** The scripts live in the plugin at **`${CLAUDE_PLUGIN_ROOT}/scripts/`**
+and are read-only — a `/plugin update` replaces that directory wholesale. Everything personal goes in
+**`<data_path>/ats/`**, which nothing but you and the user ever touches. If `${CLAUDE_PLUGIN_ROOT}` is empty
+in your shell, derive the absolute path from where this `SKILL.md` sits (the plugin root is two levels above
+`skills/jobscan-onboarding/`) and use it in full. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"` once —
+it prints every resolved path, and it is the fastest way to confirm the config you wrote in Step 3 is being
+found.
+
+Then, writing into `<data_path>/ats/`:
+
+1. Copy the plugin's `scripts/triage-config.example.json` to `<data_path>/ats/triage-config.json` and replace
+   `matchTitlePatterns` with the job titles from question 35. Without this almost nothing matches.
+2. Copy `scripts/employers.example.json` to `<data_path>/ats/employers.json` with their employers.
+3. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"` and, for large employers,
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-workday.mjs"`. Both write `ats-feeds.json` into
+   `<data_path>/ats/` themselves.
+4. Verify with `node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" --summary` and
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/test-triage.mjs"`.
+
+See `scripts/README.md`. **If a script reports it is reading config from the plugin folder**, this is a setup
+from before the split: move those `.json` files into `<data_path>/ats/`, tell the user in one sentence that
+you moved them so a plugin update can't delete them, and carry on.
 
 This needs Node.js. If it isn't installed, offer to install it in one sentence (`references/local-tooling.md`
 has the per-OS command — **you** run it). **If they'd rather not, skip the whole pipeline**: say the scan

@@ -5,9 +5,14 @@
 move things.
 
 ```yaml
-data_path: {{DATA_PATH}}        # where profile.md, profile-core.md, base-resumes/, cover-letter-voice.md live
+data_path: {{DATA_PATH}}        # where profile.md, profile-core.md, base-resumes/, cover-letter-voice.md,
+                                # sources.md and ats/ (scanner config + caches) live
 archive_path: {{ARCHIVE_PATH}}  # where numbered application folders, Job Search Digests/, and Applied Index.md live
 ```
+
+Both paths are also how the ATS scripts find their files: `paths.mjs` reads `data_path` for
+`<data_path>/ats/` and `archive_path` for `Applied Index.md`. Nothing personal is ever stored inside the
+plugin, which a `/plugin update` replaces.
 
 ## Field/search overrides (optional)
 - word_or_pages: {{word | pages}}   # which app they edit documents in; both open .docx

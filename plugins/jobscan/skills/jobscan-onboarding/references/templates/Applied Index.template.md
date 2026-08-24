@@ -17,8 +17,9 @@ junior. They were later hired at exactly that grade, because it carried a promot
 higher one — so the rule had been silently discarding the best role available. Only a recorded outcome
 surfaces that kind of error.
 
-**Machine-read by `scripts/dedup.mjs`,** which parses this table using the first three columns. Adding
-columns at the end is safe; reordering or renaming the first three is not.
+**Machine-read by the plugin's `scripts/dedup.mjs`,** which parses this table using the first three columns
+and finds this file through `archive_path` in `~/.claude/jobscan-data/jobscan-config.md`. Adding columns at
+the end is safe; reordering or renaming the first three is not.
 
 | N | Employer | Role | Status | Filed | Fit | Outcome |
 |---|----------|------|--------|-------|-----|---------|

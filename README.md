@@ -119,6 +119,10 @@ two commands above still force it sooner.
 
 [`CHANGELOG.md`](CHANGELOG.md) says what changed in each version.
 
+**Updating never touches your own files.** Your profile, résumés, archive and the scanner's employer list and
+caches all live in the folder you chose during setup, not inside the plugin. A plugin update replaces only
+the plugin's own code, so there is nothing to back up first.
+
 ## What you actually need
 
 **Claude Code, and Microsoft Word or Apple Pages.** That's the whole list. Résumés and cover letters arrive

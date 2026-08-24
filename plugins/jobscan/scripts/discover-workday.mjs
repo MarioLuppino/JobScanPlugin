@@ -28,15 +28,11 @@
  * and read the actual CXS request in your browser's network tab.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { readPath, writePath, ATS_DIR } from './paths.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REG = join(HERE, 'ats-feeds.json');
-const CAND = existsSync(join(HERE, 'workday-candidates.json'))
-  ? join(HERE, 'workday-candidates.json')
-  : join(HERE, 'workday-candidates.example.json');
+const REG_IN = readPath('ats-feeds.json');
+const CAND = readPath('workday-candidates.json', 'workday-candidates.example.json');
 
 const DRY = process.argv.includes('--dry');
 const RETRY_ONLY = process.argv.includes('--retry');
@@ -64,17 +60,22 @@ async function probe({ host, site }) {
   } finally { clearTimeout(t); }
 }
 
-const registry = existsSync(REG) ? JSON.parse(readFileSync(REG, 'utf8')) : { feeds: [] };
+const registry = REG_IN ? JSON.parse(readFileSync(REG_IN.path, 'utf8')) : { feeds: [] };
 const existing = (registry.feeds || []).filter((f) => f.ats === 'workday');
+
+if (!RETRY_ONLY && !CAND) {
+  console.error('discover-workday: no workday-candidates.json and no example to fall back on. Re-run jobscan-onboarding.');
+  process.exit(1);
+}
 
 // In retry mode every queued entry is already in the registry with a path we
 // previously accepted, so it is `known`: a timeout or 5xx must never delete it.
 const queue = RETRY_ONLY
   ? existing.filter((f) => f.status === 'pending').map((f) => ({ ...f, known: true }))
-  : (JSON.parse(readFileSync(CAND, 'utf8')).candidates || []);
+  : (JSON.parse(readFileSync(CAND.path, 'utf8')).candidates || []);
 
-if (!RETRY_ONLY && CAND.endsWith('.example.json')) {
-  console.error('discover-workday: using workday-candidates.example.json. Copy it to workday-candidates.json and add your employers.');
+if (!RETRY_ONLY && CAND.isExample) {
+  console.error(`discover-workday: using workday-candidates.example.json. Write your own to ${ATS_DIR}/workday-candidates.json.`);
 }
 
 console.error(`Probing ${queue.length} Workday candidate paths...`);
@@ -123,4 +124,8 @@ if (pending.length) console.error('Re-run with --retry later; pending paths are 
 
 const out = { ...registry, generated: new Date().toISOString().slice(0, 10), feeds: merged };
 if (DRY) console.log(JSON.stringify([...best.values()], null, 2));
-else { writeFileSync(REG, JSON.stringify(out, null, 2) + '\n'); console.error(`Merged into ${REG} (${merged.length} feeds)`); }
+else {
+  const reg = writePath('ats-feeds.json');
+  writeFileSync(reg, JSON.stringify(out, null, 2) + '\n');
+  console.error(`Merged into ${reg} (${merged.length} feeds)`);
+}
