@@ -14,20 +14,26 @@
  *   node fetch-ats.mjs --all               # include excluded rows, for auditing
  *   node fetch-ats.mjs | node dedup.mjs    # full cheap half of a scan
  *
- * Reads ats-feeds.json (see ats-feeds.example.json). Build it with
- * discover-ats.mjs and discover-workday.mjs.
+ * Reads <data_path>/ats/ats-feeds.json (see ats-feeds.example.json here for the
+ * shape). Build it with discover-ats.mjs and discover-workday.mjs.
  */
 
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { triageAll } from './triage.mjs';
+import { readPath, ATS_DIR } from './paths.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const REG_PATH = existsSync(join(HERE, 'ats-feeds.json'))
-  ? join(HERE, 'ats-feeds.json')
-  : join(HERE, 'ats-feeds.example.json');
-const REGISTRY = JSON.parse(readFileSync(REG_PATH, 'utf8'));
+const REG = readPath('ats-feeds.json', 'ats-feeds.example.json');
+if (!REG) {
+  console.error('fetch-ats: no employer registry. Run discover-ats.mjs first.');
+  process.exit(1);
+}
+if (REG.isExample) {
+  console.error(
+    'fetch-ats: using ats-feeds.example.json (sample employers, not yours).\n' +
+    `           Run discover-ats.mjs to build ${ATS_DIR}/ats-feeds.json.`
+  );
+}
+const REGISTRY = JSON.parse(readFileSync(REG.path, 'utf8'));
 
 const TIMEOUT_MS = 20000;
 const CONCURRENCY = 6;

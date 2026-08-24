@@ -82,21 +82,56 @@ times out silently looks identical to a source that had nothing.
 ## Where to search
 
 **STEP 0 — pull the ATS feeds before spending anything on search.** Most employers' listings live in an
-applicant tracking system with a free public JSON endpoint; one request returns every open role. Run
-`node scripts/fetch-ats.mjs | node scripts/dedup.mjs --record > candidates.json`, which pulls every
-registered employer, applies zero-token title triage, and screens against the applied-index and seen-URL
-cache. On a real 24-employer registry this returned ~1,950 postings for zero API cost with ~87% rejected
-before anything reached context. Only then spend search budget on what the registry does not cover.
-Setup and the per-ATS details are in `scripts/README.md`. **If the pipeline isn't set up** — no
-`employers.json`, or Node isn't installed because the user declined it at onboarding — skip STEP 0 silently
-and search the boards directly. Say once that the scan is slower and costs more this way; never stop to ask
-the user to install something mid-scan. **Workday is searchable** via its CXS endpoint
-(`searchText` filters server-side) despite having no sitemap; `HTTP_422` there means a wrong tenant/site
-path, `HTTP_500` means the path is right and the tenant is erroring.
+applicant tracking system with a free public JSON endpoint; one request returns every open role.
 
-Read `references/sources.md` for boards, API patterns, query templates, and the search-term-coverage +
-split-quota rules. Keep the source *categories* (federal, state agency, university/research, non-profit,
-industry, transferable-sector); the user's onboarding fills in the field-specific employers and keywords.
+**Resolve the scripts directory first — a bare `node scripts/…` will not work.** The scripts ship inside the
+plugin, not in the user's project, so a relative path resolves against whatever directory the user happens
+to be in and fails. Use **`${CLAUDE_PLUGIN_ROOT}/scripts/`**. If that variable is empty in your shell, derive
+the absolute path from the location of this `SKILL.md` — the plugin root is two levels above
+`skills/job-search/` — and use it in full. Confirm the whole path picture in one command before spending
+anything:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"
+```
+
+It prints where the scripts, the config file, the data directory, the ATS config and the applied index each
+resolved to. Then run the cheap half of the scan:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" \
+  | node "${CLAUDE_PLUGIN_ROOT}/scripts/dedup.mjs" --record > candidates.json
+```
+
+That pulls every registered employer, applies zero-token title triage, and screens against the applied-index
+and seen-URL cache. On a tuned 24-employer registry this returned ~1,950 postings for zero API cost with
+~87% rejected before anything reached context; a fresh registry returns far less until onboarding's employer
+list grows. Only then spend search budget on what the registry does not cover. Setup and the per-ATS details
+are in `scripts/README.md`.
+
+**The scripts never write inside the plugin.** Every personal file — `employers.json`,
+`triage-config.json`, `ats-feeds.json`, `workday-candidates.json`, `seen-urls.json` — lives in
+`<jobscan-data>/ats/`, because the plugin directory is replaced on `/plugin update` and anything stored
+there is destroyed. `paths.mjs` resolves that from `$JOBSCAN_DATA`, then `data_path` in the config, then
+`~/.claude/jobscan-data/`. If a script reports it is reading config from the plugin folder, that install
+predates the split: move those files to `<jobscan-data>/ats/` and say you did.
+
+**If the pipeline can't run** — no `employers.json`, Node missing because the user declined it at
+onboarding, or `paths.mjs` erroring — search the boards directly and **record one line in the digest's
+Process note** saying the ATS feeds were skipped and why. Never stop to ask the user to install something
+mid-scan, and never let the fallback pass unrecorded: a silent downgrade is indistinguishable from a working
+scan, which is how an unresolvable path went unnoticed for a whole release.
+
+**Workday is searchable** via its CXS endpoint (`searchText` filters server-side) despite having no sitemap;
+`HTTP_422` there means a wrong tenant/site path, `HTTP_500` means the path is right and the tenant is
+erroring.
+
+**Read the user's sources first, the plugin's second.** Onboarding writes the field-specific employers,
+boards and keywords to **`<jobscan-data>/sources.md`**; read that if it exists. The plugin's own
+`references/sources.md` is the shipped default — categories, API patterns, query templates, and the
+search-term-coverage + split-quota rules — and is never edited in place, because a plugin update overwrites
+it. Keep the source *categories* (federal, state agency, university/research, non-profit, industry,
+transferable-sector) whichever file supplies the specifics.
 Cross-check aggregator hits against the employer's own careers page for the live apply link.
 
 **Preferred tooling (Firecrawl):** `firecrawl_search` for discovery, `firecrawl_scrape` for JS portals,
@@ -151,10 +186,12 @@ outright; no strength elsewhere redeems it. Score only what clears the gates. Ke
 and their weights written down rather than re-derived per posting, or scores will not be comparable between
 listings or between scans.
 
-**Let recorded outcomes correct the rules — and actually read them.** Run `node scripts/calibrate.mjs`
-periodically: it reports conversion by score band and flags rules the user's own outcomes contradict.
-Run `node scripts/pipeline.mjs` at the start of a scan for what is still live, what is stale enough to
-follow up on, and whether a weekly quota is being met. The `Outcome` column in `Applied Index.md` exists so
+**Let recorded outcomes correct the rules — and actually read them.** Run
+`node "${CLAUDE_PLUGIN_ROOT}/scripts/calibrate.mjs"` periodically: it reports conversion by score band and
+flags rules the user's own outcomes contradict. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/pipeline.mjs"` at
+the start of a scan for what is still live, what is stale enough to follow up on, and whether a weekly quota
+is being met. Both find `Applied Index.md` through `archive_path` in the config; if either reports no index,
+that is a path problem to fix, **not** a finding that the user never recorded outcomes. The `Outcome` column in `Applied Index.md` exists so
 gates can be checked against reality. One user's rule screened out an entire government pay grade as too junior; they
 were later hired at exactly that grade, because it carried a promotion ladder to a far higher one. Whenever
 an outcome contradicts a gate, fix the gate and say so — a rule that would have discarded a job the user

@@ -1,5 +1,9 @@
 # Where to search — source categories & query rules
 
+**This is the shipped default, and it is never edited in place.** A `/plugin update` replaces this whole
+directory, so onboarding writes the user's field employers, boards and keywords to `<data_path>/sources.md`
+instead. `job-search` reads that file first and falls back to this one.
+
 Keep the **categories** below; onboarding swaps in your field's specific employers, boards, and keywords.
 The point is coverage across *kinds* of employer, not a fixed list.
 
@@ -48,8 +52,12 @@ Most employers' listings live in an applicant tracking system that publishes a f
 One request returns every open role at that employer: no keyword guessing, no scraping, no API key. This
 replaces the bulk of a search sweep. See `scripts/README.md` for setup.
 
+The scripts live in the plugin and the config lives in the user's data directory, so both halves need real
+paths — a bare `node scripts/…` resolves against the wrong directory and fails:
+
 ```bash
-node scripts/fetch-ats.mjs | node scripts/dedup.mjs --record > candidates.json
+node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" \
+  | node "${CLAUDE_PLUGIN_ROOT}/scripts/dedup.mjs" --record > candidates.json
 ```
 
 | ATS | Endpoint |

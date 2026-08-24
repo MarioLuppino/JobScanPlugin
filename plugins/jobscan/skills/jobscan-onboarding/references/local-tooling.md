@@ -37,7 +37,7 @@ it, scanned documents are unreadable locally and the fallback is a paid OCR serv
 **Tesseract** turns image-only PDFs into text offline. In one real application archive, **half the PDFs had
 no text layer at all** — emailed offer letters, agency forms, postings saved as screenshots.
 
-**Node.js** is needed only for the `scripts/` ATS pipeline (see Step 5 of the skill). That pipeline is a
+**Node.js** is needed only for the `scripts/` ATS pipeline (see Step 6 of the skill). That pipeline is a
 speed and cost optimization, not a requirement — without it, scanning falls back to web search and the
 system still works. Offer it as "a faster, cheaper scan"; if installing Node is friction the user doesn't
 want, skip it and say the search will lean on web search instead.
@@ -79,9 +79,10 @@ done
 
 - **Search content, not filenames.** Application folders get named inconsistently; the employer name inside
   the document is reliable. Search file contents for it rather than trusting the folder title.
-- **Keep one machine-readable index.** `Applied Index.md` is parsed directly by `scripts/dedup.mjs`, far
-  cheaper than opening every folder to check for duplicates. Its first three columns are load-bearing: add
-  columns at the end, never reorder them.
+- **Keep one machine-readable index.** `Applied Index.md` is parsed directly by
+  `${CLAUDE_PLUGIN_ROOT}/scripts/dedup.mjs`, far cheaper than opening every folder to check for duplicates.
+  The script finds it through `archive_path` in `~/.claude/jobscan-data/jobscan-config.md`. Its first three
+  columns are load-bearing: add columns at the end, never reorder them.
 - **Name folders so they sort.** A numbered prefix (`101 Role Title`) keeps the archive ordered and makes
   "what number is next" trivial.
 - **`.docx` is a zip.** If nothing else can read one, unzip it and pull text from `word/document.xml`.

@@ -3,9 +3,49 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
-## [Unreleased]
+## [0.3.0] - 2026-08-24
+
+### Fixed
+- **The ATS pipeline could not run from an installed plugin.** Every invocation was repo-relative
+  (`node scripts/fetch-ats.mjs`), which only resolves from a clone of this repository; installed, the scripts
+  live under the plugin root and the command failed. `job-search` then treated the failure as "the pipeline
+  isn't set up" and skipped it *silently*, so the cheapest and most complete half of a scan quietly never ran
+  for anyone who installed the plugin the way the README tells them to. All invocations now use
+  `${CLAUDE_PLUGIN_ROOT}/scripts/`, with a stated fallback for deriving the absolute path when that variable
+  is unset, and a fallback to web search must now be recorded in the digest's Process note rather than passing
+  unmentioned.
+- **A plugin update deleted the user's scanner setup.** `triage-config.json`, `employers.json`,
+  `ats-feeds.json`, `workday-candidates.json` and `seen-urls.json` were read and written next to the scripts,
+  inside the plugin directory that `/plugin update` replaces wholesale. Users lost their employer registry and
+  their seen-URL dedup cache to the exact command the README recommends, with no error: previously rejected
+  postings simply started resurfacing. All personal files now live in `<data_path>/ats/`.
+- **`calibrate.mjs` and `pipeline.mjs` looked for `Applied Index.md` in the working directory**, so from
+  anywhere but the archive folder they reported an empty index — which `scripts/README.md` framed as the
+  expected first-run *finding* that outcomes were never recorded. A path bug was reporting itself as a
+  diagnosis about the user. Both now resolve the archive from the config, and say explicitly that a missing
+  index is a path problem.
+- **Onboarding wrote the user's field employers and keywords into the plugin's own
+  `job-search/references/sources.md`**, where an update overwrites them. It now writes
+  `<data_path>/sources.md`, which `job-search` reads in preference to the shipped default.
 
 ### Added
+- **`scripts/paths.mjs`** — one resolver for all three roots, imported by every script. The data directory
+  comes from `$JOBSCAN_DATA`, then `data_path:` in `~/.claude/jobscan-data/jobscan-config.md`, then
+  `~/.claude/jobscan-data/`; the archive from `$JOBSCAN_ARCHIVE`, then `archive_path:`, then the working
+  directory. Run it alone (`node paths.mjs`) to print every resolved path, which is the fastest way to tell a
+  configuration problem from an empty result.
+- **A read-only migration path.** A config file still sitting beside the scripts from an earlier install is
+  read as before, with a one-line notice naming where to move it. Nothing is ever written back to the plugin
+  directory, and onboarding moves the files when it next runs.
+
+### Changed
+- The `~1,950 postings / ~87% rejected` figure is now labelled as coming from a *tuned* 24-employer registry,
+  with a note that a fresh registry returns far less until the employer list grows.
+- `README.md` states that updating the plugin never touches the user's own files.
+
+### Documentation (previously unreleased)
+
+#### Added
 - **"Keeping JobScan up to date" in the README.** Claude Code pins an installed plugin to its manifest
   `version`, and background auto-update is off by default for any marketplace that isn't Anthropic's own —
   JobScan's included. Users had no way to know a fix had shipped, or how to take it. The section gives the
@@ -17,7 +57,7 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
   change reaches the catalog without a fresh submission (nightly sync, so allow a day). Either way the
   `version` pin still gates delivery.
 
-### Changed
+#### Changed
 - **`CLAUDE.md`: unfinished work goes in the handoff document, never in the session.** The handoff rule now
   states plainly that no "what's left", next-steps list, or task list belongs in chat — that content is the
   handoff document's job, and reporting what was *done* stays brief. The convention itself moved into a real
@@ -30,7 +70,7 @@ follows [Keep a Changelog](https://keepachangelog.com/); this project uses seman
   as one series. It is a project skill: it loads for anyone working in this repository, cloud sessions
   included.
 
-Docs only; no plugin content changed, so no version bump.
+Documentation only; shipped as part of 0.3.0.
 
 ## [0.2.2] - 2026-08-24
 

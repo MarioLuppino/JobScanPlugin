@@ -11,36 +11,63 @@ zero API cost, ~87% rejected before anything reached a context window.**
 No API keys. No scraping. No paid service.
 
 > **Not something the user has to run.** Onboarding sets this up *for* them: Claude writes both config files
-> from the interview answers, installs Node if it's missing, and runs the commands below itself. The only
+> into their data directory from the interview answers, installs Node if it's missing, and runs the commands
+> below itself. The only
 > input a non-technical user gives is a list of employers they'd like to work for. If they'd rather not have
 > Node installed, the whole pipeline is skipped and the scan falls back to web search. This page is for
 > maintainers and anyone adapting the pipeline.
 
+## Two directories, and they must not be mixed
+
+| | Holds | Written by |
+|---|---|---|
+| **`${CLAUDE_PLUGIN_ROOT}/scripts/`** | the code and the `*.example.json` defaults | the plugin. **Read-only.** |
+| **`<data_path>/ats/`** | `triage-config.json`, `employers.json`, `ats-feeds.json`, `workday-candidates.json`, `seen-urls.json` | you and onboarding |
+
+This split is not tidiness. `/plugin update` replaces the plugin directory wholesale, so anything personal
+stored beside the scripts is deleted by the very command the README tells users to run — silently, taking
+the employer registry and the seen-URL dedup cache with it.
+
+`paths.mjs` resolves `<data_path>` from `$JOBSCAN_DATA`, then `data_path:` in
+`~/.claude/jobscan-data/jobscan-config.md`, then `~/.claude/jobscan-data/`. The archive (`Applied Index.md`,
+`Work Search Log.md`) comes from `$JOBSCAN_ARCHIVE`, then `archive_path:` in the same config, then the
+working directory. To see every resolved path at once:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"
+```
+
+A file still sitting beside the scripts from an older install is read anyway, with a one-line notice telling
+you to move it. Nothing is ever written back there.
+
 ## Quick start
 
 ```bash
-cd plugins/jobscan/scripts
+S="${CLAUDE_PLUGIN_ROOT}/scripts"           # or the plugin's absolute scripts path
+D="$(node "$S/paths.mjs" | awk '/^ats config/{print $3}')"
+mkdir -p "$D"
 
-cp triage-config.example.json triage-config.json   # 1. REQUIRED: your field's job titles
-cp employers.example.json     employers.json       # 2. your target employers
-node discover-ats.mjs                              # 3. find which ATS each one uses
-node discover-workday.mjs                          # 4. (optional) large employers on Workday
-node fetch-ats.mjs --summary                       # 5. see what's open right now
+cp "$S/triage-config.example.json" "$D/triage-config.json"  # 1. REQUIRED: your field's job titles
+cp "$S/employers.example.json"     "$D/employers.json"      # 2. your target employers
+node "$S/discover-ats.mjs"                                  # 3. find which ATS each one uses
+node "$S/discover-workday.mjs"                              # 4. (optional) large employers on Workday
+node "$S/fetch-ats.mjs" --summary                           # 5. see what's open right now
 ```
 
 Then the whole cheap half of a scan is one line:
 
 ```bash
-node fetch-ats.mjs | node dedup.mjs --record > candidates.json
+node "$S/fetch-ats.mjs" | node "$S/dedup.mjs" --record > candidates.json
 ```
 
-**Step 1 is the one that matters.** `triage-config.json` holds the job titles of *your* field. Ship it
+**Step 1 is the one that matters.** `triage-config.json` holds the job titles of *your* field. Leave it
 unedited and almost nothing will match, because the defaults are deliberately generic placeholders.
 
 ## Files
 
 | File | Purpose |
 |---|---|
+| `paths.mjs` | Resolves plugin root vs. data directory vs. archive. Run it alone to print all of them. |
 | `fetch-ats.mjs` | Pulls every registered feed, normalizes, triages. The main entry point. |
 | `triage.mjs` | Zero-token title/location/salary filter. `match` / `review` / `exclude`. |
 | `dedup.mjs` | Screens against your applied-index and a persistent seen-URL cache. |
@@ -52,8 +79,9 @@ unedited and almost nothing will match, because the defaults are deliberately ge
 | `*.example.json` | Templates. Copy each to the same name without `.example`. |
 
 Your own `triage-config.json`, `employers.json`, `ats-feeds.json`, `workday-candidates.json` and
-`seen-urls.json` are gitignored — they are personal, and `ats-feeds.json` in particular reveals exactly who
-you are applying to.
+`seen-urls.json` live in `<data_path>/ats/`, outside the repository entirely — they are personal, and
+`ats-feeds.json` in particular reveals exactly who you are applying to. The same names are also gitignored
+here, so a file left over from an older install cannot be committed by accident.
 
 ## Supported ATS platforms
 
@@ -80,7 +108,7 @@ Read the error code instead of guessing:
   tenant `acme`, site `AcmeCareers`. If every guess 422s, open the page and read the actual `/wday/cxs/`
   request in your browser's network tab. That is definitive and takes a minute.
 - **`HTTP_500` — the path is right**, the tenant is erroring or Workday is having an outage. The registry
-  records these as `pending`; re-run `node discover-workday.mjs --retry` later rather than rediscovering.
+  records these as `pending`; re-run `node "$S/discover-workday.mjs" --retry` later rather than rediscovering.
 
 `discover-workday.mjs` will never shrink the Workday side of your registry: an outage or a network blip
 cannot silently delete paths you already confirmed. Only an explicit 422 removes one.
@@ -107,9 +135,12 @@ Finding roles is the easy half. These two read what happened *after* you applied
 the scoring ever improves.
 
 ```bash
-node calibrate.mjs     # do my fit scores actually predict outcomes?
-node pipeline.mjs      # what's still live, what needs a follow-up, am I hitting quota?
+node "$S/calibrate.mjs"   # do my fit scores actually predict outcomes?
+node "$S/pipeline.mjs"    # what's still live, what needs a follow-up, am I hitting quota?
 ```
+
+Both read `Applied Index.md` through `archive_path`. **If either reports no index, that is a path problem,
+not a finding about your record-keeping** — check `node "$S/paths.mjs"` before believing the report.
 
 **`calibrate.mjs`** reports conversion by score band and flags rules your own outcomes contradict. It
 deliberately refuses to draw conclusions below eight resolved outcomes, because a conversion rate from

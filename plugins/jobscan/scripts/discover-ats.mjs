@@ -11,27 +11,31 @@
  *   node discover-ats.mjs           # probe all, merge into ats-feeds.json
  *   node discover-ats.mjs --dry     # probe and print only
  *
- * INPUT: employers.json (copy employers.example.json). One entry per employer
- * with candidate slugs. Guessing is cheap, so list several spellings.
+ * INPUT:  <data_path>/ats/employers.json (see employers.example.json here for the
+ *         shape). One entry per employer with candidate slugs. Guessing is cheap,
+ *         so list several spellings.
+ * OUTPUT: <data_path>/ats/ats-feeds.json. Never written under the plugin root,
+ *         which an update replaces.
  *
  * NOTE: many large employers use Workday, which needs a different probe --
  * see discover-workday.mjs.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { readPath, writePath, ATS_DIR } from './paths.mjs';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const OUT = join(HERE, 'ats-feeds.json');
-const IN = existsSync(join(HERE, 'employers.json')) ? join(HERE, 'employers.json') : join(HERE, 'employers.example.json');
+const IN = readPath('employers.json', 'employers.example.json');
 const DRY = process.argv.includes('--dry');
 const TIMEOUT_MS = 12000;
 const CONCURRENCY = 12;
 
-const TARGETS = JSON.parse(readFileSync(IN, 'utf8')).employers || [];
-if (IN.endsWith('employers.example.json')) {
-  console.error('discover-ats: using employers.example.json. Copy it to employers.json and put your own target employers in it.');
+if (!IN) {
+  console.error('discover-ats: no employers.json and no example to fall back on. Re-run jobscan-onboarding.');
+  process.exit(1);
+}
+const TARGETS = JSON.parse(readFileSync(IN.path, 'utf8')).employers || [];
+if (IN.isExample) {
+  console.error(`discover-ats: using employers.example.json. Write your own target employers to ${ATS_DIR}/employers.json.`);
 }
 
 const ATS = {
@@ -96,7 +100,8 @@ for (const f of found) {
   if (!prev || f.jobCount > prev.jobCount) best.set(f.employer, f);
 }
 
-const existing = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : { feeds: [] };
+const prior = readPath('ats-feeds.json');
+const existing = prior ? JSON.parse(readFileSync(prior.path, 'utf8')) : { feeds: [] };
 // Preserve Workday and Paylocity entries, which this script does not probe.
 const preserved = (existing.feeds || []).filter((f) => f.ats === 'workday' || f.ats === 'paylocity');
 
@@ -114,4 +119,8 @@ console.error(`No public feed for ${missing.length}: ${missing.join(', ')}`);
 console.error('Employers missing here are often on Workday -- try discover-workday.mjs next.');
 
 if (DRY) console.log(JSON.stringify(registry, null, 2));
-else { writeFileSync(OUT, JSON.stringify(registry, null, 2) + '\n'); console.error(`\nWrote ${OUT}`); }
+else {
+  const out = writePath('ats-feeds.json');
+  writeFileSync(out, JSON.stringify(registry, null, 2) + '\n');
+  console.error(`\nWrote ${out}`);
+}
