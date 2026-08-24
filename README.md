@@ -90,6 +90,35 @@ is uploaded here.
 Run my weekly job search
 ```
 
+### Keeping JobScan up to date
+
+**Plugins do not quietly update themselves.** Claude Code pins an installed plugin to the version in its
+manifest, and background auto-update is **off by default for any marketplace that isn't one of Anthropic's
+own** — JobScan's is one of those. Install it today and you keep that copy until you ask for a newer one,
+however many fixes have shipped in the meantime.
+
+So when you want the latest, send:
+
+```
+Update my JobScan plugin
+```
+
+Claude refreshes the catalog and pulls the new version. Typed out, that's two commands sent one at a time —
+plus `/reload-plugins` if Claude Code asks for it:
+
+```
+/plugin marketplace update jobscan
+```
+```
+/plugin update jobscan@jobscan
+```
+
+If you installed from Anthropic's community marketplace instead (`/plugin install jobscan@claude-community`),
+that one does refresh in the background, so new versions usually arrive on a later session on their own. The
+two commands above still force it sooner.
+
+[`CHANGELOG.md`](CHANGELOG.md) says what changed in each version.
+
 ## What you actually need
 
 **Claude Code, and Microsoft Word or Apple Pages.** That's the whole list. Résumés and cover letters arrive
