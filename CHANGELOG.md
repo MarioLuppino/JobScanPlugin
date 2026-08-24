@@ -3,7 +3,7 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
-## [Unreleased]
+## [0.2.2] - 2026-08-24
 
 ### Changed
 - **Existing `job-search` / `job-applications` skills are now an integration case, not a reason to stay
