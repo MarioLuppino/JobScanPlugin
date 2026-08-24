@@ -18,9 +18,9 @@ scaffold to set one up.
 - **Claude Code `schedule` skill / scheduled agents (routines):** ask Claude to "schedule my weekly job search
   every Monday at 7am" — it registers a cron-backed routine that runs this prompt.
 - **OS cron / Task Scheduler:** run your Claude CLI headless with the prompt on a weekly trigger.
-- **Firecrawl monitors (between scans):** point `firecrawl-monitor` at a few high-yield saved searches /
-  careers pages to surface *new* postings mid-week as deltas — a complement to, not a replacement for, the
-  full weekly scan.
+- **Firecrawl monitors (between scans):** point `firecrawl_monitor_create` at a few high-yield saved
+  searches / careers pages to surface *new* postings mid-week as deltas — a complement to, not a replacement
+  for, the full weekly scan. Monitors need a Firecrawl API key; they are unavailable on the keyless server.
 
 ## Preconditions for an unattended run
 

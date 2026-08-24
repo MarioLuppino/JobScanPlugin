@@ -184,7 +184,8 @@ any install itself. Nothing here requires you to open a terminal.*
 
 40. *(Not asked)* Which Claude you're running and whether skills are available — Claude already knows.
 41. *(Not asked)* Whether Firecrawl is connected, which makes government job portals cheaper to read. If it
-    isn't, there's a built-in fallback and Claude just mentions it once.
+    isn't, Claude offers to connect it and does so itself — the free version needs no account and no API
+    key — and if you'd rather not, there's a built-in fallback and it moves on.
 42. *(Not asked)* Whether Claude can open a browser for job sites that need one.
 43. **Word or Pages?** The only software question, and both work. It changes nothing except the two-line
     instructions you get when you want to edit a document yourself. There is nothing to install.

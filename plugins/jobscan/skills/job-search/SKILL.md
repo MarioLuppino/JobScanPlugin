@@ -34,9 +34,9 @@ Then read the user's compressed profile digest at **`<jobscan-data>/profile-core
   - *Gate 2 (pre-draft, HARD STOP):* no application material is generated for any job unless its posting is
     re-confirmed live at draft time — no exceptions, however strong the fit.
 - **Dynamic portals** (NEOGOV/governmentjobs, Paylocity, USAJOBS, CalCareers, Workday) can't be read by a
-  plain fetch. Use **`firecrawl-scrape`** (renders JS) first — a firecrawl load of the real posting confirming
+  plain fetch. Use **`firecrawl_scrape`** (renders JS) first — a firecrawl load of the real posting confirming
   title + open state counts as `VERIFIED-LIVE`. Fall back to **browser tools** if firecrawl is blocked. If
-  neither confirms, leave `UNVERIFIED` and say so. (No Firecrawl key → note it once and use built-in
+  neither confirms, leave `UNVERIFIED` and say so. (No Firecrawl at all → note it once and use built-in
   fetch/search + browser tools.)
 - **No duplicates / no resurfacing.** Before finalizing the digest and again at the pre-draft gate, screen
   every candidate against **two** files in `<archive>`: **`Applied Index.md`** (packets already built) and
@@ -59,8 +59,9 @@ full-context workflow at the lowest token cost. Don't narrate intermediate reaso
    surviving posting to a compact summary (title, org, location, required/preferred quals, responsibilities,
    skills/tools, certs, **ATS keywords**, research area/industry, seniority, salary, dates, canonical URL +
    verification status). Drop boilerplate/benefits/legal text. **Do this server-side with Firecrawl where
-   available** (`firecrawl-agent` structured extraction, or `firecrawl-scrape` + immediate distill) so the
-   bulky posting never enters context. Prefer `firecrawl-search` over fetch+search round-trips.
+   available** (`firecrawl_scrape` + immediate distill, or `firecrawl_agent` structured extraction if a key
+   is configured) so the bulky posting never enters context. Prefer `firecrawl_search` over fetch+search
+   round-trips.
 2. **Candidate retrieval — read `profile-core.md` once** per run; reuse for every listing.
 3. *(Résumé tailoring and 4. cover letter run in `job-applications` on selection — see that skill.)*
 
@@ -98,10 +99,13 @@ split-quota rules. Keep the source *categories* (federal, state agency, universi
 industry, transferable-sector); the user's onboarding fills in the field-specific employers and keywords.
 Cross-check aggregator hits against the employer's own careers page for the live apply link.
 
-**Preferred tooling (Firecrawl):** `firecrawl-search` for discovery, `firecrawl-map` to find a canonical
-posting URL, `firecrawl-scrape` for JS portals. All fall back gracefully to built-in fetch/search/browser
-tools; note the fallback in the digest's Process note. Never use `firecrawl-interact` (or browser form-fill)
-to submit anything.
+**Preferred tooling (Firecrawl):** `firecrawl_search` for discovery, `firecrawl_scrape` for JS portals,
+`firecrawl_parse` for documents. These three work on the keyless hosted server
+(`https://mcp.firecrawl.dev/v2/mcp`), which needs no account or API key — if Firecrawl is missing entirely,
+that is the setup to offer. `firecrawl_map` (canonical posting URL) and `firecrawl_agent` need an API key, so
+treat them as a bonus, not a dependency. All fall back gracefully to built-in fetch/search/browser tools;
+note the fallback in the digest's Process note. Never use `firecrawl_interact` (or browser form-fill) to
+submit anything.
 
 **Operational rules learned the expensive way:**
 - **Check the tool is available before declaring it unavailable.** Read the *authentication* line of a

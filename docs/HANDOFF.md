@@ -65,7 +65,9 @@ unchanged.
 - A Claude surface with **Agent Skills** support. The **desktop app** is the path for non-technical users —
   it installs plugins without a terminal — and the CLI works identically.
 - **Firecrawl** (recommended) for JS portals + structured extraction; graceful fallback to built-in
-  fetch/search + browser tools without it.
+  fetch/search + browser tools without it. Onboarding connects it itself via the keyless hosted MCP server
+  at `https://mcp.firecrawl.dev/v2/mcp` (no account, no API key, no third-party marketplace); a free key, or
+  the `firecrawl@claude-plugins-official` plugin, raises the limits and unlocks `map`/`agent`/monitors.
 - **Node.js** *only* for the optional `scripts/` ATS pipeline. Onboarding installs it for the user, and skips
   the pipeline entirely if they'd rather not — the scan falls back to web search.
 - **Microsoft Word or Apple Pages** to open the `.docx` packets. Files are produced by the `docx` skill; no

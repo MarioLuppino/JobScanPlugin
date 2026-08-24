@@ -16,4 +16,5 @@ notify: true                   # deliver the top matches + apply links + digest 
   **stops** (no drafting/submitting without you).
 - Requires: machine on at run time; Firecrawl or a browser tool reachable for dynamic portals; onboarding
   completed.
-- To add mid-week delta alerts, set up `firecrawl-monitor` on a few saved searches separately.
+- To add mid-week delta alerts, set up `firecrawl_monitor_create` on a few saved searches separately
+  (needs a Firecrawl API key — not available on the keyless server).

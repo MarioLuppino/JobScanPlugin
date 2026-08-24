@@ -136,8 +136,10 @@ field-neutral — adapt them to the user's discipline.
 ## I. Tooling & environment
 40. `[AUTO]` Runtime (Claude Code CLI, Desktop, claude.ai) and whether Skills are available — you already
     know this. Don't ask.
-41. `[AUTO]` Firecrawl connected? Check for the tool rather than asking. If it's missing, mention the
-    fallback in one sentence and move on — do not send them off to sign up for anything mid-interview.
+41. `[AUTO]` Firecrawl connected? Check for the tool rather than asking. If it's missing, offer it in one
+    sentence and connect it yourself — the keyless hosted server needs no account and no API key (Step 7 has
+    the command). If they decline, name the fallback once and move on. Never send them off to sign up for
+    anything mid-interview.
 42. `[AUTO]` Browser tool available (for JS portals)? Check, don't ask.
 43. `[ASK]` **Word or Pages?** One question, and it only changes which two-line instructions you give when
     they need to edit a file themselves. Both work. Nothing to install.

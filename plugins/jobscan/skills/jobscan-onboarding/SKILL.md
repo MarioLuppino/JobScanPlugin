@@ -156,8 +156,26 @@ become the reason someone abandons setup.
 
 ## Step 7 — Confirm tooling & finish
 
-Check what's available yourself rather than asking: Skills feature, Firecrawl (mention the fallback in one
-sentence if absent — don't send them off to sign up mid-interview), browser tools.
+Check what's available yourself rather than asking: Skills feature, Firecrawl, browser tools.
+
+**If Firecrawl isn't connected, offer it in one sentence and set it up yourself.** It makes JS-heavy
+government portals cheaper and more reliable to read. Never send them to a sign-up page mid-interview, and
+never make it a condition of finishing — the scan works without it on built-in fetch/search + browser tools.
+Two routes, in this order:
+
+1. **Hosted, keyless — the default offer.** Connect Firecrawl's remote MCP server at
+   `https://mcp.firecrawl.dev/v2/mcp`. No account, no API key, no marketplace to add. **You** run it:
+   `claude mcp add --scope user --transport http firecrawl https://mcp.firecrawl.dev/v2/mcp`. The keyless
+   tier is rate-limited per day and serves `firecrawl_scrape`, `firecrawl_search` and `firecrawl_parse` —
+   which is what the scan needs.
+2. **Keyed, only if they ask for more.** Firecrawl is a plugin in Anthropic's *official* marketplace, which
+   Claude Code configures automatically, so there is no third-party marketplace involved:
+   `/plugin install firecrawl@claude-plugins-official`, then `/firecrawl:setup` to paste a free API key from
+   firecrawl.dev. This raises the limits and unlocks the rest of its tools. Only mention this if the keyless
+   route gets rate-limited or they ask for it — a sign-up is exactly the barrier this setup avoids.
+
+Record the outcome as `firecrawl: connected | not-connected` in the config file. If they decline, say once
+that dynamic portals may come back `UNVERIFIED` and move on.
 
 Then offer, per `references/local-tooling.md`, to install the free PDF tools (Poppler, and Tesseract for
 scanned documents), because without them the agent burns metered credits reading files already on disk. Run

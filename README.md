@@ -43,7 +43,14 @@ ordinary application, and no terminal is involved at any point:
 - **Windows only:** the Code tab needs [Git for Windows](https://git-scm.com/downloads/win) installed first.
   Install it, then restart Claude.
 
-**1. Add the plugin.** In the chat box, send these two lines, one at a time:
+**1. Add the plugin.** The simplest way is to ask for it in plain words. In the chat box, send:
+
+```
+Add the plugin marketplace at MarioLuppino/JobScanPlugin, then install the jobscan plugin
+```
+
+Claude runs both steps for you. If you'd rather type the commands yourself, they are these two, sent one at
+a time:
 
 ```
 /plugin marketplace add MarioLuppino/JobScanPlugin
@@ -52,9 +59,9 @@ ordinary application, and no terminal is involved at any point:
 /plugin install jobscan@jobscan
 ```
 
-In the desktop app you can also do this without typing a command: click **+** next to the prompt box →
-**Plugins** → **Add plugin**. And if you'd rather not do either, ask Claude in plain words — *"add the plugin
-marketplace at MarioLuppino/JobScanPlugin, then install the jobscan plugin"* — and it will do it for you.
+The desktop app's plugin browser (**+** next to the prompt box → **Plugins** → **Add plugin**) only lists
+marketplaces you have already added, so it can't do the first step — but once JobScan's marketplace is
+added, the plugin shows up there like any other.
 
 **2. Do the setup interview, once.** Send:
 
@@ -95,8 +102,17 @@ installed, Claude installs it and tells you in a sentence what it did.
 Three optional extras, each of which Claude offers during setup and each of which you can decline:
 
 - **[Firecrawl](https://www.firecrawl.dev/)** — makes JavaScript-heavy government portals (NEOGOV, Workday,
-  USAJOBS, CalCareers) cheaper and more reliable to read. Without it the scanner falls back to ordinary web
-  search and still works.
+  USAJOBS, CalCareers) cheaper and more reliable to read. **Declining is genuinely fine:** without it the
+  scanner falls back to ordinary web search and still works. If you want it, say *"set up Firecrawl for my
+  job scan"* and Claude takes one of two routes — neither needs a terminal, and neither needs you to add
+  another plugin marketplace:
+  - **Free, no sign-up.** Claude connects Firecrawl's hosted server at `https://mcp.firecrawl.dev/v2/mcp`.
+    No account and no API key. It's rate-limited per day, and covers reading a page and searching — which is
+    what the scan uses it for.
+  - **Higher limits.** Firecrawl is a plugin in *Anthropic's own* marketplace, which Claude Code already
+    has, so it installs with `/plugin install firecrawl@claude-plugins-official`. Then `/firecrawl:setup`
+    asks for a free API key from [firecrawl.dev](https://www.firecrawl.dev/), which raises the daily limits
+    and unlocks the rest of its tools.
 - **A faster scanner.** Claude can pull openings straight from employers' own job boards instead of searching
   for them — far cheaper and more complete. It needs Node.js, which Claude installs for you. Decline it and
   the scan uses web search instead.
