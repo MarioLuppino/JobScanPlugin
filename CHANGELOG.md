@@ -3,6 +3,54 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [0.5.0] - 2026-08-25
+
+A second pass over the path a non-technical user actually walks, from the download link to the first file
+they open. The audit behind 0.3.0 and 0.4.0 was about a scan that quietly did less than it claimed; these are
+the places where a correct system still loses somebody — a plugin that installed but never loaded, files in a
+format nobody warned them about, and a setup check that greets a brand-new install with eight failures.
+
+### Fixed
+- **`jobscan-doctor` no longer reports a brand-new install as broken.** Every check but Node and the scripts
+  themselves resolves against a file that onboarding creates, so an install which has never been through
+  setup failed all of them at once: the first run printed eight `FIX` lines full of absolute paths and closed
+  with "8 things above will make a scan quieter than it should be". That is what someone saw the first time
+  they said *"check my job scanner"*, and it reads as a broken product rather than an unstarted one. The
+  script now recognises an untouched install — no config, none of the generated files, nothing in the ATS
+  folder or the archive — and says so in one line, while still naming a genuine problem with the *install*
+  (missing scripts, a too-old Node), because that blocks setup. The skill relays it the same way and skips
+  the live Firecrawl and `docx` checks, which mean nothing before setup has run.
+- **The README's install step ended before the plugin was usable.** Installing a plugin and loading it are
+  two different things, and Claude Code's own install summary says which happened — `Plugin is now active.`
+  or `Run /reload-plugins to activate.` The README said neither, so the next thing it told the reader to send
+  ("Run jobscan onboarding") could land in a session that had never heard of JobScan. That is the most likely
+  single point to lose someone, and it looks exactly like a failed install. Step 1 now covers the outcomes,
+  and says plainly what "Claude doesn't know what JobScan is" means.
+- **"Everything arrives as ordinary Word documents" was not true.** `INTERVIEW-QUESTIONS.md` said it directly
+  beneath a list of four things that are all plain-text `.md` files; only the résumé and cover-letter packets
+  are `.docx`. Someone opening their Documents folder on Windows would be asked which application to use, for
+  a file the documentation had promised was a Word document. The reader-facing page, the README and
+  onboarding's closing summary now all say what these files are: that nobody has to open one, that asking
+  Claude to read or change it is the intended route, and that any text editor opens it if they want to look.
+- **JobScan is not in Anthropic's community marketplace, and the documentation said otherwise.** The README
+  told users that an install from `jobscan@claude-community` refreshes itself in the background, and
+  `ARCHITECTURE.md` §9 documented that catalog's automatic commit-pin sync as one of two live distribution
+  paths. Checked against the published catalog: there is no `jobscan` entry, so that install command fails
+  today. The README now says there is one place to get JobScan and that no copy of it updates itself;
+  `ARCHITECTURE.md` keeps the mechanics, labelled as the route worth taking rather than one already taken.
+
+### Changed
+- **The permission prompt that comes first is now the one the README prepares you for.** "About those
+  permission prompts" named `winget` / `brew` / `apt`, `claude mcp add` and `node` — but not
+  `claude plugin marketplace add`, which arrives in step 1, before the reader has seen JobScan do anything,
+  and is therefore the easiest of all of them to refuse out of caution. It is now named, and tied back to the
+  plain-words request it is carrying out.
+- **"That's the whole list" no longer contradicts the paragraph below it.** The requirements section claimed
+  Claude Code and Word were the whole requirement, then explained two paragraphs later that for a
+  public-sector search Firecrawl is "effectively required, not optional" — for exactly the audience the
+  plugin was built for. The claim is scoped, and the sector caveat is stated where the list is rather than
+  after it.
+
 ## [0.4.1] - 2026-08-25
 
 A patch for one defect in the 0.4.0 check itself. On an install predating 0.3.0, `jobscan-doctor` reported

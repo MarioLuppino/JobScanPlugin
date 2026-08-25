@@ -32,6 +32,17 @@ two paths, the data folder, `profile-core.md`, the job-title patterns, the emplo
 the seen-URL cache, the archive folder and its writability, `Applied Index.md`, and any personal file
 stranded inside the plugin folder by a pre-0.3.0 install.
 
+### If it says "not set up yet", stop there
+
+Every check but the first two resolves against a file onboarding creates, so an install that has never been
+through setup fails all of them at once. The script recognises that and reports it as one thing rather than
+eight — **and so should you.** Say that setup hasn't been run, offer to run it, and stop. Don't read out a
+list of missing files, don't run the live checks below (Firecrawl and `docx` matter at setup, not before),
+and above all don't let someone who installed a job scanner ten minutes ago conclude it arrived broken.
+
+The exception is a `FIX` line the script prints under that heading: those are problems with the *install*,
+not the setup, and they block onboarding. Name that one and offer the fix.
+
 ## Then check the four things a script cannot
 
 The script can see files. It cannot see what is loaded in *this* session. Check these yourself, and report

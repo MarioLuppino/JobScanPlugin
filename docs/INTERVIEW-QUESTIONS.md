@@ -204,9 +204,18 @@ any install itself. Nothing here requires you to open a terminal.*
 - **Your archive** — an applied-index so nothing gets applied to twice, a list of roles you looked at and
   passed on, and a folder for weekly digests. If you're claiming unemployment benefits, a work-search log too.
 
-Everything arrives as ordinary Word documents you open in **Microsoft Word or Apple Pages**. Claude will walk
-you through the profile when it's built, so you can correct anything it misread from your CV before it
-reaches a real application.
+**The résumés and cover letters you actually send are Word documents** — a `.docx` per application, which you
+open in **Microsoft Word or Apple Pages**, edit if you want to, and submit yourself.
+
+**The four things above are not.** They're plain-text files with `.md` on the end: the format Claude reads
+fastest, which is a large part of why a weekly scan stays cheap. You never have to open one — say *"read me
+my profile"* or *"change my salary floor"* and Claude does it for you. If you do want to look, any text
+editor opens them (Notepad, TextEdit, or Word itself via *File → Open*), and inside they're ordinary
+sentences with a few `#` marks where the headings are. Double-clicking one on Windows may ask you which app
+to use; that's the file type being unfamiliar, not anything being wrong.
+
+Claude will walk you through the profile when it's built, so you can correct anything it misread from your CV
+before it reaches a real application.
 
 Then you type **"run my weekly job search"** and the system starts finding jobs.
 

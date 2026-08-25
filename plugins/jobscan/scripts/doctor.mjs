@@ -88,6 +88,43 @@ if (missing.length === 0) {
     'Reinstall the plugin: "Update my JobScan plugin".');
 }
 
+// 2b. A never-onboarded install is not a broken one --------------------------
+// Every check below resolves against a file that onboarding creates, so on a
+// fresh install they all fail at once: this used to print eight FIX lines and
+// close with "8 things above will make a scan quieter than it should be." That
+// is what somebody sees the first time they say "check my job scanner", and it
+// reads as a broken product rather than an unstarted one. The honest report for
+// an untouched install is one line, so anything genuinely wrong with the
+// install itself — the two checks above — still gets said, and nothing else does.
+const PERSONAL_FILES = [
+  'triage-config.json', 'employers.json', 'ats-feeds.json', 'workday-candidates.json', 'seen-urls.json',
+];
+const GENERATED_FILES = ['profile.md', 'profile-core.md', 'setup-state.md', 'sources.md'];
+
+const untouched = !existsSync(CONFIG_PATH)
+  && !GENERATED_FILES.some((f) => existsSync(join(DATA_DIR, f)))
+  && !PERSONAL_FILES.some((f) => locate(f))
+  && !existsSync(archivePath('Applied Index.md', 'JOBSCAN_INDEX'));
+
+if (untouched) {
+  const blocked = rows.filter((r) => r.state === 'fix');
+  console.log('JobScan check — not set up yet\n');
+  console.log('The plugin is installed. The one-time setup has not been run yet, so there are none of');
+  console.log('your own files to check.\n');
+  console.log('\u2192 Say "run jobscan onboarding". It is one conversation, and it creates everything the');
+  console.log('  weekly scan needs.');
+  if (blocked.length) {
+    console.log(blocked.length === 1
+      ? '\nOne thing to fix first, because setup depends on it:\n'
+      : `\n${blocked.length} things to fix first, because setup depends on them:\n`);
+    for (const r of blocked) {
+      console.log(`FIX ${r.label}  ${r.detail}`);
+      if (r.fix) console.log(`    \u2192 ${r.fix}`);
+    }
+  }
+  process.exit(0);
+}
+
 // 3. Config ------------------------------------------------------------------
 if (!existsSync(CONFIG_PATH)) {
   report('fix', 'Config file', `not found at ${CONFIG_PATH}`,
