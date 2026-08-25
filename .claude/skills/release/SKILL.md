@@ -144,9 +144,16 @@ Hand over three things, wherever they end up delivered:
 
 - the exact tag name (`v0.5.0`) and **the commit it points at — the merge commit on `main`, not the branch
   head**;
-- the release title, and the body written per `references/release-notes.md` in this skill directory;
+- the release notes file, written per `references/release-notes.md` in this skill directory. **It has two
+  parts and a cut line**: the public body above it, the maintainer's supporting information below it. Write
+  it to the scratchpad and send it with `SendUserFile` so pasting is a file operation, not a copy out of
+  terminal scrollback;
 - the URL that opens the form pre-filled:
   `https://github.com/MarioLuppino/JobScanPlugin/releases/new?tag=v0.5.0`
+
+Only the part above the cut line is ever pasted into the form. The supporting block — SHAs, PRs, diffstat,
+gate output, what was deliberately kept off the page — exists so the release is reconstructable later, and
+it lives in the file and nowhere public.
 
 **Where those three go depends on whether the user is still here, and the two cases are exclusive.** Never
 do both: `CLAUDE.md` forbids the same content living in two places, and the release body is long.

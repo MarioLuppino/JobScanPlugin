@@ -82,6 +82,53 @@ If a file format *did* change, say exactly what happens to a user who skipped th
   broken pipeline was indistinguishable from one you had declined". That candour is the house voice.
 - Em dashes and italics for the pivotal word are used freely here, unlike handoff documents.
 - Backticks for every path, command, filename and config key.
-- No branches, SHAs or PR numbers in the body. v0.2.2 carried a supporting block with them; v0.3.0 and
-  v0.4.0 dropped it and read better. Leave it out unless the user asks.
-- 400 to 900 words. Longer than that means the changelog is being restated.
+- No branches, SHAs, PR numbers or verification logs in the body. They are not gone — they go below the cut
+  line, see **The deliverable** below.
+- 400 to 900 words. Longer than that means the changelog is being restated. A one-defect patch can be 350.
+
+## The deliverable
+
+Release notes are handed over as **one file with two parts and a cut line between them**, because the two
+audiences are different and only one of them is the public.
+
+```
+v0.5.0 — <title>
+
+---
+
+<the public body — this is what gets pasted into the GitHub release form>
+
+════════════════════════════════════════════════════════════════════
+  EVERYTHING BELOW THIS LINE IS FOR YOUR RECORDS — DO NOT PASTE
+════════════════════════════════════════════════════════════════════
+
+## Supporting information
+...
+```
+
+Write the file to the session scratchpad and send it with `SendUserFile`, so pasting is a file operation
+rather than a copy out of terminal scrollback. Put the public body in the chat too, but never the supporting
+block: the file is where that lives.
+
+**The cut line is not decoration.** v0.2.2's release page carries its supporting block in public, naming
+commit SHAs, the session git proxy and an HTTP 403 — none of which means anything to someone who installed a
+job scanner. The marker exists so that cannot happen by accident again.
+
+### What belongs below the cut
+
+The maintainer's record of the release, which the page deliberately omits:
+
+- **What shipped** — version and the version it came from, the merge commit the tag points at, the PRs and
+  commits in the range, the diffstat, and the diffstat *restricted to `plugins/`* when the range carries
+  repository work as well.
+- **What is deliberately not on the release page** — anything under `.claude/` that shipped in the same
+  merge. Naming it here is what makes leaving it off the page a decision rather than an oversight.
+- **Plugin behaviour change** — which skills change, and which are untouched.
+- **Breaking changes** — and if none, say none.
+- **Verification run before merge** — the actual gate output, and the fact that there is no CI in this
+  repository so validation is manual by design.
+- **Why the version bump mattered** — Claude Code pins an installed plugin to the `version` string.
+- **Tagging** — the tag has to be created in the browser; the session git proxy refuses tag pushes with
+  HTTP 403.
+
+The v0.2.2 release page is the format reference for this block. Read it for the shape, then keep it private.
