@@ -49,13 +49,9 @@ State the defect first, in the terms someone hit it in, and only then say what t
 Bold lead-in, then mechanism, then what it stops costing. The lead-in is either the sentence a user would
 actually say, or the plain-language effect:
 
-> **"Add employers to my job scan."** Adds or drops the organizations the scanner watches, re-runs feed
-> discovery, and updates the job titles it matches. This is the one that matters most: a target list grows
-> all year, and that list is what decides whether a scan finds anything.
+> **"Add employers to my job scan."** Adds or drops the organizations the scanner watches, re-runs feed discovery, and updates the job titles it matches. This is the one that matters most: a target list grows all year, and that list is what decides whether a scan finds anything.
 
-> **`calibrate.mjs` and `pipeline.mjs` find your applied index.** Both looked for `Applied Index.md` in the
-> working directory, so from anywhere but the archive folder they reported an empty index [...] A path bug
-> was reporting itself as a diagnosis about your habits.
+> **`calibrate.mjs` and `pipeline.mjs` find your applied index.** Both looked for `Applied Index.md` in the working directory, so from anywhere but the archive folder they reported an empty index [...] A path bug was reporting itself as a diagnosis about your habits.
 
 Every item names what went wrong without it. An item that reads as a feature announcement is not finished.
 
@@ -67,8 +63,7 @@ typed commands. Then one line on migration — so far always that there is none:
 ```markdown
 ## Upgrading
 
-Plugins don't update themselves. Send `Update my JobScan plugin`, or type `/plugin marketplace update
-jobscan` then `/plugin update jobscan@jobscan`.
+Plugins don't update themselves. Send `Update my JobScan plugin`, or type `/plugin marketplace update jobscan` then `/plugin update jobscan@jobscan`.
 
 Nothing to migrate: 0.5.0 <what it adds> and changes no file format.
 ```
@@ -81,6 +76,9 @@ If a file format *did* change, say exactly what happens to a user who skipped th
 - Admit the defect plainly. These notes have said "was true about typing and false about consent" and "a
   broken pipeline was indistinguishable from one you had declined". That candour is the house voice.
 - Em dashes and italics for the pivotal word are used freely here, unlike handoff documents.
+- **One paragraph, one line.** No hard wrapping anywhere in the file, on either side of the cut line: the
+  page wraps to the reader's window and a wrapped command does not run. See **One paragraph, one line** in
+  `SKILL.md`.
 - Backticks for every path, command, filename and config key.
 - No branches, SHAs, PR numbers or verification logs in the body. They are not gone — they go below the cut
   line, see **The deliverable** below.
