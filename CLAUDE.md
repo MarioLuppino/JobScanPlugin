@@ -39,8 +39,19 @@ PY
 
 ## Before pushing
 
-`claude plugin validate ./plugins/jobscan` and `claude plugin validate .` must
-both pass.
+```
+bash .claude/skills/release/scripts/preflight.sh
+```
+
+Runs both plugin validators, the 44-question invariant above, the triage tests,
+and a check that `plugin.json`'s version has a `CHANGELOG.md` section. There is no
+CI here, so this is it. It must exit 0 before any push.
+
+## Shipping a version
+
+Use the `release` skill (`.claude/skills/release/`). It carries the version rules,
+the PR conventions, the release-notes house style, and the two steps a session
+cannot do — the tag and the release page are browser work, see Environment below.
 
 ## Environment
 
