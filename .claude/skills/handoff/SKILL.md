@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Compact the current conversation into a handoff document, published as an Artifact for another agent to pick up.
+description: Compact the current conversation into a handoff document — a plain Markdown file committed to this repository and handed over as a path.
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
@@ -10,20 +10,34 @@ Write a handoff document summarising the current conversation so a fresh agent c
 **A handoff is a running checklist, not a session log.** It carries what is still open and what the next
 agent would get wrong without it. Everything else is cost.
 
-**The document is published as an Artifact and handed over as a link, never as a local file.** A file
-written in a session container evaporates with the container; a link survives, opens on any machine, and can
-be pasted into the next chat. That is the whole reason, and it is settled — do not relitigate it by writing
-the handoff to disk, and do not commit one into this repository instead. `docs/` is product; a handoff is
-scratch continuity.
+## Where it lives
 
-The cost of that durability is that the page is HTML, so every word on it is worth roughly three times what
-the same word costs as Markdown. That is why the size budget below is a rule and not a preference.
+`.claude/handoffs/<topic-slug>.md`, committed and pushed to the branch the work is on.
+
+**Plain Markdown, no styling.** No HTML, no CSS, no web page, no tables, no status chips, no emoji. A
+handoff is read by an agent far more often than it is looked at by a person, and every character of markup
+is a character the next session pays for twice: once to write it, once to read it back. Headings,
+paragraphs, numbered lists, backticks around identifiers, fenced blocks around commands. Nothing else.
+
+**Pushing is what makes it durable**, and it is the reason the file is in the repository rather than the
+scratchpad: a file that only exists in the session container evaporates with the container. So the commit
+and the push are part of writing the handoff, not a follow-up someone might skip.
+
+No date in the filename. A handoff is rewritten in place across sessions, and `git log` already records
+when each pass happened.
+
+`.claude/` ships to nobody, so a handoff there never reaches someone who installs the plugin. `docs/` is
+product and never holds one.
+
+**This repository is public.** Redact API keys, tokens, passwords, and personal data beyond what the next
+agent needs. Pushing publishes.
+
+**Delete the file in the commit that finishes the work it carries.** A handoff left standing after its
+thread closes is stale continuity that every later session has to read before it can discover the file is
+worthless.
 
 Do not duplicate content already captured elsewhere (specs, plans, ADRs, issues, commits, diffs, README,
-CLAUDE.md, in-repo docs, earlier artifacts). Reference them by absolute path or URL instead.
-
-Redact anything sensitive: API keys, passwords, tokens, and personally identifiable information beyond what
-the next agent needs. An Artifact is private until shared, but write it as though it will be.
+CLAUDE.md, in-repo docs). Reference those by absolute path or URL instead.
 
 If the user passed arguments, treat them as a description of what the next session will focus on and tailor
 the document to that.
@@ -34,24 +48,46 @@ Use these sections, in this order, and drop any that would be empty:
 
 1. **Mission** — one or two sentences on what the next session is for.
 2. **State of play** — the state the next agent has to act on, plus a short "already done, do not redo"
-   list. Not a history.
+   list. Not a history. Open it with the identifiers the next agent would otherwise have to hunt for, one
+   per line: repository, branch, base commit, plugin version, open PR, tag published.
 3. **Open items** — numbered, each actionable on its own, with the blocking question stated if there is one.
-   This is the part of the page that carries the work forward, so it is the part that survives every trim.
-4. **Decisions and constraints** — choices already made that the next agent must not relitigate, and the hard
-   rules in play. Give the reasoning, so they survive contact with a fresh opinion.
+   This is the part that carries the work forward, so it is the part that survives every trim.
+4. **Decisions and constraints** — choices already made that the next agent must not relitigate, and the
+   hard rules in play. Give the reasoning, so they survive contact with a fresh opinion.
 5. **Gotchas** — dead ends, stale links, tooling quirks, anything that already cost time once. One line each.
 6. **Suggested skills** — which skills the next agent should invoke, one line of reasoning each.
 7. **Next action** — the single concrete first step.
 
+The shape, in full:
+
+```markdown
+# <the mission in the user's words, not "Handoff Document">
+
+Repository: MarioLuppino/JobScanPlugin
+Branch: `claude/some-branch`
+Base commit: `2a63bca`
+Plugin version: 0.4.1
+Open PR: none
+
+## State of play
+## Open items
+1.
+## Decisions and constraints
+## Gotchas
+## Suggested skills
+## Next action
+```
+
+Name each heading for the work, not the document furniture: `## What changed` and `## Environment traps`
+beat `## Summary` and `## Notes`. Open items stay a numbered list so the next chat can refer to them by
+number.
+
 Anything drafted in the session that has no home on disk — release notes, a comment you did not post, a
-snippet the next agent will need — goes into the document itself. That is the only copy once the container
-is gone.
+snippet the next agent will need — goes into the document itself. That is the only copy.
 
 ## Size budget
 
-**Target 400 words of prose, hard cap 800.** Count the words a reader reads, not the markup around them.
-
-Over the cap, cut completed work first. Never cut open items.
+**Target 400 words of prose, hard cap 800.** Over the cap, cut completed work first. Never cut open items.
 
 - Completed work earns at most one line, and only when knowing it stops the next agent redoing it or
   explains why the current state looks the way it does. Once that fact is recorded somewhere durable — a
@@ -61,29 +97,26 @@ Over the cap, cut completed work first. Never cut open items.
   **Gotchas** as one line, or nowhere.
 - No pasted tool output beyond the trimmed error text a live bug actually needs.
 
-## How to publish it
+## How to write and push it
 
-1. **Load the `artifact-design` skill first.** It is required before writing any artifact, and it sets how
-   much design the page warrants.
-2. Read `references/layout.md` in this skill directory for the house layout, then write the page as HTML
-   into the session scratchpad. Name the file `<YYYY-MM-DD>-<project-slug>-<topic-slug>.html`, taking today's
-   date from the environment context rather than guessing. The project slug is the working directory's own
-   name, lowercased and hyphenated.
-3. Publish with the `Artifact` tool: a `<title>` at the top of the file, plus `favicon` and a one-sentence
-   `description`. Keep the title a short noun phrase, and keep it and the favicon stable across redeploys.
+1. `ls .claude/handoffs/` and read any file covering the same thread of work.
+2. Write or rewrite `.claude/handoffs/<topic-slug>.md`.
+3. `bash .claude/skills/release/scripts/preflight.sh` — `CLAUDE.md` requires it before every push, and it
+   must exit 0.
+4. Stage the handoff file by name. Never `git add -A` here: the session's work in progress is a separate
+   commit or none at all, and a handoff commit that sweeps it up is unreviewable.
+5. Commit and `git push -u origin <branch>`. The push is what makes the path worth handing over.
 
 ## Continue one document, do not stack new ones
 
-A handoff is rewritten in place, not appended to. Before writing, find the project's existing one: inside
-the session you still have its file path, and from a later session `action: "list"` finds the URL and
-`action: "read"` recovers the HTML into a local file you can edit.
+A handoff is rewritten in place, not appended to. If a file in `.claude/handoffs/` covers the same thread,
+edit that file rather than adding a second one, and let git history hold the earlier passes — do not keep
+superseded text in the document to preserve it. Any path already pasted somewhere then still resolves.
+Start a new file only when the work is genuinely a different thread.
 
-If it covers the same thread of work, rewrite that page and republish to the same URL — inside the session
-by calling `Artifact` again with the same file path, from a later session by publishing the recovered file
-with `url` set. Any link already pasted somewhere then still resolves. Change the header eyebrow to
-`Session handoff · updated <D Month YYYY>`, delete every item that got done, and fold anything now recorded
-in a commit or a repository file down to a reference. Start a new page only when the work is genuinely a
-different thread.
+On each pass: delete every item that got done, fold anything now recorded in a commit or a repository file
+down to a reference, and re-read the state block off the repository rather than editing it from memory —
+head commit, version and open PR all move.
 
 **Every pass should be able to remove lines.** A handoff that only grows is being used as a log and has
 stopped doing its job.
@@ -106,22 +139,22 @@ is the main way a handoff gets shorter.
 
 ## Close the loop
 
-After publishing, keep the chat reply to two lines. **Never print, summarise, restate, or list the handoff's
+After pushing, keep the chat reply to two lines. **Never print, summarise, restate, or list the handoff's
 contents in chat** — the document is the deliverable, and showing it twice wastes tokens. Print only:
 
-- the Artifact link, and
+- the repository-relative path, and its GitHub URL on the branch for reading it off this machine, and
 - a ready-to-paste opening line for the next chat:
 
-  `Read <artifact URL> and pick up from there.`
+  `Read .claude/handoffs/<topic-slug>.md and pick up from there.`
 
 ## Picking the work back up
 
-When a session opens with a pointer to a handoff, read it first (`action: "read"` on the URL), then read the
-artifacts it references before acting. Treat "Decisions and constraints" as settled. If something in it
-conflicts with what you observe on disk, the disk wins: say so, and correct the handoff or the memory file.
+When a session opens with a pointer to a handoff, `cat` it first, then read the files it references before
+acting. Treat "Decisions and constraints" as settled. If something in it conflicts with what you observe on
+disk, the disk wins: say so, and correct the handoff or the memory file.
 
-If no pointer is given but the request sounds like continued work, use `action: "list"` to find the most
-recent handoff whose title matches this project, and ask before assuming it is the right one.
+If no pointer is given but the request sounds like continued work, `ls .claude/handoffs/` and ask before
+assuming a file there is the right one.
 
-Work the open items as your checklist for the session. The next pass over the page deletes the ones you
+Work the open items as your checklist for the session. The next pass over the file deletes the ones you
 finished; it does not tick them and keep them.
