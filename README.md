@@ -11,7 +11,7 @@ what it can't know, and builds your candidate profile, so you don't start from a
 to write, read, or understand a line of code** — if something needs installing, Claude installs it, though it
 will ask your permission first and [those prompts look technical](#about-those-permission-prompts).
 
-## What's in the box
+## What's in this plugin
 
 Two cooperating skills plus onboarding:
 
@@ -45,7 +45,7 @@ rather than regenerate, a single de-dup index instead of rescanning folders) and
 place you'd type a question — not into a terminal, and not into a file.
 
 **0. Get Claude Code.** Skip this if you already use it. If you don't, install the **desktop app** — it's an
-ordinary application, and no terminal is involved at any point:
+ordinary application:
 
 - [Download for macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect) ·
   [Download for Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect) ·
@@ -55,7 +55,7 @@ ordinary application, and no terminal is involved at any point:
 - **Windows only:** the Code tab needs [Git for Windows](https://git-scm.com/downloads/win) installed first.
   Install it, then restart Claude.
 
-**1. Add the plugin.** The simplest way is to ask for it in plain words. In the chat box, send:
+**1. Add the plugin.** The simplest way is to ask for it in plain words. In the chat box, copy and paste, then send:
 
 ```
 Add the plugin marketplace at MarioLuppino/JobScanPlugin, then install the jobscan plugin
@@ -115,10 +115,8 @@ not in the chat. Ask for the scan again later and everything already screened is
 twice for the same postings.
 
 **Expect a short first list.** The scanner is only as good as the employer list behind it, and yours starts
-nearly empty. The figures quoted in this project's own notes (~1,950 postings a week, ~87% filtered out for
-free) come from a registry of two dozen employers that had been tuned over months. Day one is more like a
-handful of employers and a handful of matches. Say *"add employers to my job scan"* whenever another one
-occurs to you — that single list is what makes the difference, and it grows all year.
+nearly empty. Day one is a handful of employers and a handful of matches. Say *"add employers to my job scan"* 
+whenever another one occurs to you — that single list is what makes the difference, and it grows all year.
 
 **Nothing is ever submitted for you.** The scan stops at a digest; drafting happens when you pick a job, and
 you send the application yourself.
