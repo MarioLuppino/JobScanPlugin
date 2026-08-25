@@ -75,6 +75,19 @@ The desktop app's plugin browser (**+** next to the prompt box → **Plugins** �
 marketplaces you have already added, so it can't do the first step — but once JobScan's marketplace is
 added, the plugin shows up there like any other.
 
+**Then switch it on.** Installing a plugin and *loading* it are two different things, and the second one is
+easy to miss. Claude Code tells you which happened:
+
+- **"Plugin is now active"** — nothing to do, carry on to step 2.
+- **"Run `/reload-plugins` to activate"** — send exactly that, on its own. (If it warns that reloading will
+  re-read the conversation, send `/reload-plugins --force`.)
+- **Installed from the chat box, no message either way** — send `/reload-plugins`, or just close Claude and
+  reopen it. Both work.
+
+**If Claude says it doesn't know what JobScan is**, this is why, and it's the most common hiccup in the whole
+setup. It is not a failed install: the plugin is on your disk, this session just started before it arrived.
+Reload or restart and ask again.
+
 **2. Do the setup interview, once.** Send:
 
 ```
@@ -95,6 +108,10 @@ Pages document, an email to yourself, a photo of handwritten notes — then hand
 Your answers become files on **your own computer**, in a folder you choose — "my Documents folder" is a
 perfectly good answer, and Claude sorts out the rest — plus an archive folder for your applications. Nothing
 is uploaded here.
+
+Those files are plain text, not documents you're meant to open and edit: say *"read me my profile"* or
+*"change my salary floor"* and Claude handles it. The résumés and cover letters you actually send are
+separate, and those are real Word files.
 
 **3. Run your first scan.** Once setup finishes, send:
 
@@ -130,11 +147,16 @@ computer's password.
 
 That's the system working, not something going wrong. What you'll see is roughly:
 
+- `claude plugin marketplace add …` / `claude plugin install …` — installing JobScan itself, in step 1
 - `winget install …` / `brew install …` / `sudo apt install …` — installing a free tool
 - `claude mcp add … firecrawl …` — connecting the page reader
 - `node …` — running the scanner
 
-**Every one of them is optional.** Declining any prompt is a valid answer: setup carries on and tells you
+**The first one arrives before you've seen anything JobScan does**, which makes it the easiest to refuse out
+of caution. It is the plain-words request from step 1 being carried out — the same two commands printed
+there, run for you instead of typed by you.
+
+**Every one of the rest is optional.** Declining any prompt is a valid answer: setup carries on and tells you
 what you'll be missing. If you'd rather not decide in the moment, say *"skip anything that needs
 installing"* at the start and Claude won't offer them at all.
 
@@ -161,9 +183,9 @@ plus `/reload-plugins` if Claude Code asks for it:
 /plugin update jobscan@jobscan
 ```
 
-If you installed from Anthropic's community marketplace instead (`/plugin install jobscan@claude-community`),
-that one does refresh in the background, so new versions usually arrive on a later session on their own. The
-two commands above still force it sooner.
+**There is one place to get JobScan, and it's the one step 1 added.** It isn't in Anthropic's community
+catalog, so no copy of it updates itself in the background — asking is the only way a new version reaches
+you. Worth doing every month or so.
 
 [`CHANGELOG.md`](CHANGELOG.md) says what changed in each version.
 
@@ -173,15 +195,21 @@ the plugin's own code, so there is nothing to back up first.
 
 ## What you actually need
 
-**Claude Code, and Microsoft Word or Apple Pages.** That's the whole list. Résumés and cover letters arrive
-as `.docx` files you open and edit in whichever office app you already have, and both export a PDF when a job
-portal insists on one. No converters, no toolchains, no programming languages.
+**Claude Code, and Microsoft Word or Apple Pages.** Nothing else has to be bought or learned. Résumés and
+cover letters arrive as `.docx` files you open and edit in whichever office app you already have, and both
+export a PDF when a job portal insists on one. No converters, no toolchains, no programming languages.
 
 You never have to open a terminal, edit a configuration file, or type a command. Where setup needs something
 installed, Claude runs the command itself and tells you in a sentence what it did — you approve it, and
 [you can decline any of them](#about-those-permission-prompts).
 
-Three optional extras, each of which Claude offers during setup and each of which you can decline:
+**One caveat, and it depends on where you're applying.** The three extras below are genuinely optional for a
+search aimed at company job boards. If you're aiming at government agencies, universities or large
+enterprises, the first of them — Firecrawl — is not optional in practice, for the reason spelled out under
+it. It's free and needs no account, so this costs you a permission prompt rather than money; it's listed here
+so nobody discovers it after a fruitless first scan.
+
+Three extras, each of which Claude offers during setup and each of which you can decline:
 
 - **[Firecrawl](https://www.firecrawl.dev/)** — reads JavaScript-heavy job portals (NEOGOV, Workday,
   USAJOBS, CalCareers, Paylocity) that an ordinary page fetch cannot see at all. **Whether you can skip it

@@ -156,20 +156,24 @@ The bump is not bookkeeping. Claude Code **pins an installed plugin to that stri
 you like, and anyone who already installed JobScan keeps their cached copy until `version` changes. Forgetting
 it means shipping to no one.
 
-**How a release actually reaches people.** Two distribution paths, with different update behaviour:
+**How a release actually reaches people.** One live distribution path, and one that is worth having:
 
 - **JobScan's own marketplace** (`/plugin marketplace add MarioLuppino/JobScanPlugin`). Third-party
   marketplaces have background auto-update **off by default**, so a user's copy is frozen at the version they
   installed until they run `/plugin marketplace update jobscan` and `/plugin update jobscan@jobscan`. The
   README's "Keeping JobScan up to date" section exists to tell them that; keep it in any fork.
-- **The community marketplace** (`anthropics/claude-plugins-community`, installed as `@claude-community`).
-  Submissions go through the in-app form at `platform.claude.com/plugins/submit` and land here after review.
-  An approved plugin is pinned to a commit SHA in that catalog, **but CI bumps the pin automatically as new
-  commits are pushed to this repository** — so a merged change does not need a fresh submission to reach the
-  catalog. The public catalog syncs nightly, so allow a day. That marketplace is Anthropic-maintained, so
-  users on it generally do get background updates.
+- **The community marketplace** (`anthropics/claude-plugins-community`, installed as `@claude-community`) —
+  **JobScan is not in it.** Checked against the published catalog: there is no `jobscan` entry, so
+  `/plugin install jobscan@claude-community` fails today and the README must not offer it. Recorded here
+  because the route is worth taking: submissions go through the in-app form at
+  `platform.claude.com/plugins/submit` and land in the catalog after review, an approved plugin is pinned to
+  a commit SHA, **and CI bumps that pin automatically as new commits are pushed** — so once accepted, a
+  merged change reaches the catalog without a fresh submission (nightly sync, allow a day). Because that
+  marketplace is Anthropic-maintained, users installing from it would also get background updates, which the
+  own-marketplace path cannot give them. If JobScan is ever accepted, both this section and the README's
+  "Keeping JobScan up to date" need the second path added back.
 
-Both paths still obey the `version` pin above: the catalog can point at the newest commit and users will
+Either path still obeys the `version` pin above: a catalog can point at the newest commit and users will
 still keep their cached copy unless `version` changed. Bump it, then let the pin follow.
 
 Keep version history in the changelog only — never annotate the working files with edit or version notes.

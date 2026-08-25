@@ -306,6 +306,13 @@ see the `job-search` skill's `references/scheduling.md`).
 place, or name what isn't and why it was skipped. Then summarize what was created — by what it does rather
 than by filename — and tell them to run **"run my weekly job search"**.
 
+**Say once what these files are, because the format surprises people.** Everything you just generated is
+plain text ending in `.md`, and on Windows double-clicking one asks which app to open it with — which reads
+as something broken. Tell them, in a sentence: they never need to open one, asking you to read it back or
+change it is the intended way, and any text editor opens them if they want to look. The résumés and cover
+letters are the exception and they should hear that in the same breath: those arrive as real Word `.docx`
+files, one per application. Never leave someone to discover this in their Documents folder.
+
 **Say what the first scan is like before they run it:** it's the most expensive run they'll do, later scans
 skip everything already seen, the digest is written as it goes so stopping partway keeps what was found, and
 nothing is ever submitted for them. And tell them the three things they can change later without another
