@@ -6,8 +6,12 @@ converters, no command-line tools, no programming languages.
 
 ## 1. Make the file with the `docx` skill (default)
 
-The Claude `docx` skill ships with Claude Code. Hand it the finalized Markdown and ask for a single-column
-Word file with standard headings. Save it straight into the application's numbered folder.
+**Check the `docx` skill is loaded before you promise a Word file.** It is available on most Claude Code
+surfaces but not guaranteed on all of them, and the failure is otherwise discovered at the worst moment — a
+finished résumé with nothing to put it in. If it is there, hand it the finalized Markdown and ask for a
+single-column Word file with standard headings, saved straight into the application's numbered folder. If it
+isn't, say so in one sentence and use the paste-in path below; don't reach for a converter.
+(`jobscan-doctor` checks this along with everything else.)
 
 Respect the **minimum font size** the user set at onboarding. If they didn't set one, use 11 pt body text
 (10.5 pt is the floor worth going to when a page is nearly full — below that, print becomes hard to read and

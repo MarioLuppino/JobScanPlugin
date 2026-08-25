@@ -56,6 +56,30 @@ regenerate over them.** Existing material answers most `[CV]` questions and ofte
 their file and a template disagree, keep their file — offer to add anything the template has that theirs
 lacks, and write anything genuinely new alongside rather than in place of it.
 
+## Setup can be interrupted — write as you go
+
+Forty-four questions is a reasonable amount to ask. Losing all of them to a closed window, a context limit or
+a stop-for-the-day is not, and that is what happens when nothing is written until Step 4.
+
+So **checkpoint after every section of the interview**, not at the end:
+
+1. As soon as the user names a location (Step 3), write the config file. Everything after that has somewhere
+   to go. If they haven't chosen yet, use `~/.claude/jobscan-data/` and say you'll move it later if they
+   want — the `where` skill moves it in one line.
+2. After each section of `references/intake-questionnaire.md` is answered and confirmed, append it to
+   `<data_path>/profile.md` under its own heading. A partial profile is a real asset; a lost one is not.
+3. Keep a short `<data_path>/setup-state.md`: which sections are done, which are outstanding, and one line
+   on anything the user deferred or declined. Update it in the same turn as the profile.
+
+**Say once, early, that stopping is safe** — "we can stop any time and pick up where we left off." People
+ration their attention differently when they know that.
+
+**Resuming.** If `<data_path>/setup-state.md` or a partial `profile.md` exists when this skill starts, do not
+begin again. Read them, tell the user in one line what's already done, and ask only what's outstanding.
+"Resume my jobscan setup" and "set up jobscan" arrive here the same way; the state file decides which one it
+is. A completed setup that is re-run should offer the `profile`, `employers` and `where` skills instead —
+changing one setting never needs the interview again.
+
 ## Step 1 — Ask for their CV before you ask them anything else
 
 Opening with question 1 of 44 makes someone re-type a career they already wrote down. Start here instead:
@@ -145,6 +169,10 @@ ship or commit these filled files** (they're the user's private data):
 **Then show them what you built.** Walk through the profile in the chat and invite corrections — this is the
 moment misreadings of a CV surface, and it's much cheaper to fix here than in a submitted application.
 
+If you have been checkpointing (see above), most of `profile.md` is already on disk by now and this step is
+completing it — the derived files (`profile-core.md`, the résumé scaffolds, the voice file) are built from
+the finished profile, and `setup-state.md` records which of them exist.
+
 ## Step 5 — Set up the archive
 
 In the archive path, create **`Applied Index.md`** from `references/templates/Applied Index.template.md`
@@ -209,10 +237,13 @@ See `scripts/README.md`. **If a script reports it is reading config from the plu
 from before the split: move those `.json` files into `<data_path>/ats/`, tell the user in one sentence that
 you moved them so a plugin update can't delete them, and carry on.
 
-This needs Node.js. If it isn't installed, offer to install it in one sentence (`references/local-tooling.md`
-has the per-OS command — **you** run it). **If they'd rather not, skip the whole pipeline**: say the scan
-will use web search instead, which is slower and costs more but works, and continue. Never let this step
-become the reason someone abandons setup.
+This needs Node.js **v18 or newer**. If it isn't installed, offer to install it in one sentence
+(`references/local-tooling.md` has the per-OS command — **you** run it), then check the version you actually
+got with `node --version`. On Debian and Ubuntu, `sudo apt install nodejs` still ships a version far too old
+for these scripts, and every one of them dies with a `ReferenceError` about `fetch` that reads like a bug in
+the plugin — `local-tooling.md` has the working command for those systems. **If they'd rather not install
+anything, skip the whole pipeline**: say the scan will use web search instead, which is slower and costs more
+but works, and continue. Never let this step become the reason someone abandons setup.
 
 ## Step 7 — Confirm tooling & finish
 
@@ -234,8 +265,24 @@ Two routes, in this order:
    firecrawl.dev. This raises the limits and unlocks the rest of its tools. Only mention this if the keyless
    route gets rate-limited or they ask for it — a sign-up is exactly the barrier this setup avoids.
 
-Record the outcome as `firecrawl: connected | not-connected` in the config file. If they decline, say once
-that dynamic portals may come back `UNVERIFIED` and move on.
+**Then say that Claude Code has to restart before it can use it.** MCP servers are loaded when a session
+starts, so the tools you just connected do not exist in *this* session — the first scan run without a restart
+behaves exactly as though Firecrawl were never set up, and government portals come back `UNVERIFIED` for no
+visible reason. This is the same trap as the Windows `PATH` note below, and it needs saying at the same
+moment, not after they conclude it failed.
+
+Record the outcome as `firecrawl: connected | not-connected` in the config file — and record what it means
+for *them*, because it is not the same for everyone. You know their target employers by now (Step 6):
+
+- **Mostly government or large-enterprise portals** (NEOGOV/governmentjobs, Workday, USAJOBS, CalCareers,
+  Paylocity): say plainly that these can't be read without JavaScript rendering, and that `job-search`'s
+  second gate refuses to draft anything it can't re-confirm live — so **declining Firecrawl means digests
+  with no packets behind them**, not a slightly worse scan. This is the exact case the README was built for,
+  so do not soften it.
+- **Mostly Greenhouse, Lever, SmartRecruiters, Ashby or Workable boards:** ordinary fetching reads these
+  fine, and declining really is fine. Say that too — accuracy in both directions.
+
+If they decline, note it once and move on; nothing here is a condition of finishing.
 
 Then offer, per `references/local-tooling.md`, to install the free PDF tools (Poppler, and Tesseract for
 scanned documents), because without them the agent burns metered credits reading files already on disk. Run
@@ -246,9 +293,24 @@ Ask the one document question: **Word or Pages?** Both work; it only changes the
 give when they edit a file themselves. Nothing to install. See the `job-applications` skill's
 `references/docx-generation.md`.
 
+**Check the `docx` skill is actually there rather than assuming it.** Its availability varies by surface and
+version. If it's missing, say so now, in one sentence — packets still get built through the paste-into-Word
+path, but the user does the formatting themselves, and that is much better heard during setup than the first
+time a résumé is due.
+
 Offer the weekly scheduled run (register the task from `references/templates/weekly-scan-task.template.md` —
-see the `job-search` skill's `references/scheduling.md`). Then summarize what was created, in plain language
-and by what it does rather than by filename, and tell them to run **"run my weekly job search"**.
+see the `job-search` skill's `references/scheduling.md`).
+
+**Finish with the check, and read it out.** Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs"` (the
+`jobscan-doctor` skill covers the rest) and confirm in plain words that everything the scan depends on is in
+place, or name what isn't and why it was skipped. Then summarize what was created — by what it does rather
+than by filename — and tell them to run **"run my weekly job search"**.
+
+**Say what the first scan is like before they run it:** it's the most expensive run they'll do, later scans
+skip everything already seen, the digest is written as it goes so stopping partway keeps what was found, and
+nothing is ever submitted for them. And tell them the three things they can change later without another
+interview: **"change my salary floor"** and anything else in the profile, **"add employers to my job scan"**,
+and **"where does jobscan keep my files"**.
 
 **Privacy reminder:** everything generated in Steps 4–5 is personal career data. If the user is working
 inside a clone of the repo, confirm `.gitignore` is excluding it. Never commit a filled profile, résumé,

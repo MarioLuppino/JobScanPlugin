@@ -5,7 +5,7 @@ never part of the repo — the plugin ships methodology; your profile is generat
 
 ## 1. Architecture
 
-Three skills plus a data layer:
+Three working skills, four maintenance skills, and a data layer:
 
 - **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → stop.
 - **`job-applications`** (drafter) — deconstruct posting → fit go/no-go → competency→evidence map → tailored
@@ -15,7 +15,19 @@ Three skills plus a data layer:
   questions are tagged `[CV]` / `[ASK]` / `[AUTO]` in `intake-questionnaire.md` and listed for readers in
   [`INTERVIEW-QUESTIONS.md`](INTERVIEW-QUESTIONS.md).
 
-Data flow: `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** + index append).
+Then four small skills that exist so the setup is not a one-shot, because the levers all live in files the
+user was deliberately never shown:
+
+- **`jobscan-doctor`** (check) — every precondition in one visible line, plain words, one fix each. Also runs
+  as step zero of `job-search`. `scripts/doctor.mjs` does the disk-checkable half; the skill covers what only
+  a live session can see (is Firecrawl *callable*, is `docx` loaded, are browser tools present).
+- **`profile`** (settings) — salary floor, locations, avoid-list, fit floor, quota, voice. Edits `profile.md`
+  and re-derives the digest line; never the digest alone.
+- **`employers`** (targets) — add/drop employers, re-run ATS discovery, edit the title patterns.
+- **`where`** (locations) — show and move `data_path` / `archive_path`, then verify.
+
+Data flow: `jobscan-doctor` → `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** +
+index append).
 
 Two locations you configure at onboarding:
 - **`<jobscan-data>/`** — your private files (default `~/.claude/jobscan-data/`).
@@ -26,7 +38,10 @@ Two locations you configure at onboarding:
 **Ships with the plugin (methodology, field-agnostic):**
 - `skills/job-search/SKILL.md` + `references/{sources.md, digest-template.md}`
 - `skills/job-applications/SKILL.md` + `references/{resume-formats-and-ats.md, writing-playbook.md}`
-- `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, templates/…}`
+- `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, local-tooling.md, templates/…}`
+- `skills/{jobscan-doctor,profile,employers,where}/SKILL.md` — maintenance, no references of their own
+- `scripts/{paths,doctor,fetch-ats,triage,dedup,discover-ats,discover-workday,calibrate,pipeline}.mjs`
+  + `*.example.json` (read-only shipped defaults) + `test-triage.mjs`
 
 **Generated locally by onboarding (private, git-ignored):**
 - `<jobscan-data>/profile.md` — master profile, single source of truth, with the "Propagation on edit" note.
@@ -35,6 +50,11 @@ Two locations you configure at onboarding:
   slots.
 - `<jobscan-data>/cover-letter-voice.md` — your reverse-engineered voice.
 - `<archive>/Applied Index.md` — append-only dedup file.
+- `<jobscan-data>/setup-state.md` — which interview sections are done, so setup can be resumed rather than
+  restarted. Written from the first answered section onward, alongside a partial `profile.md`.
+- `<jobscan-data>/sources.md` — the user's field employers/boards/keywords; read in preference to the
+  plugin's shipped default.
+- `<jobscan-data>/ats/*.json` — scanner registry, title config and caches.
 
 ## 3. The two ideas that make it efficient
 
@@ -64,12 +84,20 @@ unchanged.
 
 - A Claude surface with **Agent Skills** support. The **desktop app** is the path for non-technical users —
   it installs plugins without a terminal — and the CLI works identically.
-- **Firecrawl** (recommended) for JS portals + structured extraction; graceful fallback to built-in
-  fetch/search + browser tools without it. Onboarding connects it itself via the keyless hosted MCP server
-  at `https://mcp.firecrawl.dev/v2/mcp` (no account, no API key, no third-party marketplace); a free key, or
-  the `firecrawl@claude-plugins-official` plugin, raises the limits and unlocks `map`/`agent`/monitors.
-- **Node.js** *only* for the optional `scripts/` ATS pipeline. Onboarding installs it for the user, and skips
-  the pipeline entirely if they'd rather not — the scan falls back to web search.
+- **Firecrawl** for JS portals + structured extraction; graceful fallback to built-in fetch/search + browser
+  tools without it. Onboarding connects it itself via the keyless hosted MCP server at
+  `https://mcp.firecrawl.dev/v2/mcp` (no account, no API key, no third-party marketplace); a free key, or the
+  `firecrawl@claude-plugins-official` plugin, raises the limits and unlocks `map`/`agent`/monitors.
+  **MCP servers load at session start, so it is unusable until Claude Code restarts** — say so when
+  connecting it, or the first scan looks like the setup failed. How optional it is depends on the user's
+  sector: for government/enterprise portals (NEOGOV, Workday, USAJOBS, CalCareers, Paylocity) Gate 2 refuses
+  to draft against a posting it cannot re-confirm, so declining ends the run at the digest; for
+  Greenhouse/Lever-class boards plain fetch is enough and declining costs nothing.
+- **Node.js v18 or newer** (global `fetch`) *only* for the optional `scripts/` ATS pipeline. Onboarding
+  installs it for the user, checks `node --version` rather than assuming, and skips the pipeline entirely if
+  they'd rather not — the scan falls back to web search. `sudo apt install nodejs` on Ubuntu 22.04 / Debian 11
+  installs Node 12, which fails every script with a `ReferenceError` that reads like a plugin bug; use the
+  NodeSource LTS setup there.
 - **Microsoft Word or Apple Pages** to open the `.docx` packets. Files are produced by the `docx` skill; no
   converter, toolchain, or programming language is required at any point.
 - A **scheduler** if you want the weekly run unattended.
@@ -79,6 +107,16 @@ unchanged.
 Prepare-never-submit · two-gate live verification · no fabrication · dedup before digest and pre-draft · hard
 gates (authorization/sponsorship, salary floor + relocation + pay-grade, location, fit floor, avoid-list) ·
 published-only publications.
+
+**And: no silent degradation.** Every fallback is announced — in the digest's Process note during a scan, in
+plain words during setup. This is the rule the 0.3.0 audit was written about: a pipeline that could not run
+was authorised to "skip STEP 0 *silently*", so a broken install and a declined option looked identical for a
+whole release. Degrading is fine; degrading invisibly is a defect. Anything added to this system that can
+fail quietly needs a line in `jobscan-doctor` and a sentence in the output where it fails.
+
+**And: nothing personal under the plugin root.** `/plugin update` replaces that directory wholesale. Code and
+`*.example.json` ship inside it and are read-only; everything the user owns resolves through `scripts/paths.mjs`
+to `<data_path>` or `<archive>`.
 
 ## 7. Privacy
 

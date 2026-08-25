@@ -81,22 +81,30 @@ times out silently looks identical to a source that had nothing.
 
 ## Where to search
 
-**STEP 0 — pull the ATS feeds before spending anything on search.** Most employers' listings live in an
-applicant tracking system with a free public JSON endpoint; one request returns every open role.
+**STEP 0 — check the setup, then pull the ATS feeds before spending anything on search.** Most employers'
+listings live in an applicant tracking system with a free public JSON endpoint; one request returns every
+open role.
 
 **Resolve the scripts directory first — a bare `node scripts/…` will not work.** The scripts ship inside the
 plugin, not in the user's project, so a relative path resolves against whatever directory the user happens
 to be in and fails. Use **`${CLAUDE_PLUGIN_ROOT}/scripts/`**. If that variable is empty in your shell, derive
 the absolute path from the location of this `SKILL.md` — the plugin root is two levels above
-`skills/job-search/` — and use it in full. Confirm the whole path picture in one command before spending
+`skills/job-search/` — and use it in full. Confirm the whole picture in one command before spending
 anything:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs"
 ```
 
-It prints where the scripts, the config file, the data directory, the ATS config and the applied index each
-resolved to. Then run the cheap half of the scan:
+It reports every precondition — paths, config, profile, job titles, employer registry, feeds, archive,
+applied index — in one pass, and `paths.mjs` alone still prints just the resolved paths if that is all you
+need. Follow the `jobscan-doctor` skill's triage: **fatal** (no config, no profile) stops the scan and offers
+onboarding; **degrading** (no registry, no Node, no Firecrawl) continues on the fallback path *and* goes in
+the digest's Process note; **thin** (few employers, no recorded outcomes) is mentioned once at the end. Also
+confirm Firecrawl by *calling* it rather than trusting the config line — a server connected during
+onboarding isn't loaded until Claude Code restarts.
+
+Then run the cheap half of the scan:
 
 ```
 node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" \
@@ -213,6 +221,17 @@ does, and the user submits it. Log submissions in `Work Search Log.md`.
 Write to `<archive>/Job Search Digests/<YYYY-MM-DD> digest.md` using `references/digest-template.md`: a ranked
 table + a per-job block. **Include each apply link inline** in the chat summary. The digest lists candidates
 only — it does not create folders.
+
+**Write the digest as you go, not at the end.** A full scan — thousands of postings pulled, subagents fanned
+out, every survivor verified live and scored — is a large consumption event, and a user on a lower plan can
+hit a limit partway through. If the file is only written at the end, they have *nothing*: no partial list, no
+record of what was already checked, no way to resume. So create the digest file as soon as the first batch is
+scored, marked `IN PROGRESS`, and append each batch to it. Re-rank when the scan completes and drop the
+marker. A digest that stops halfway is still worth the week; a scan that dies before writing one is not.
+
+**Say up front what a first scan involves** if this is the user's first run: roughly how long, that it is the
+most expensive run they'll do (later scans dedup against the seen-URL cache), and that stopping is safe
+because the digest is on disk from the first batch onward.
 
 **Digest first, then draft on selection.** Wait for the user to pick jobs. For each pick, file it into the
 numbered archive and invoke `job-applications`.

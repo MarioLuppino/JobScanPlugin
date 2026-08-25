@@ -3,6 +3,79 @@
 All notable changes to JobScan are recorded here so the working files stay free of version commentary. Format
 follows [Keep a Changelog](https://keepachangelog.com/); this project uses semantic versioning.
 
+## [0.4.0] - 2026-08-25
+
+Closes the remaining findings from the usability audit that produced 0.3.0. That audit found eight gaps
+between what the README promises and what an installed plugin delivers; 0.3.0 fixed the three that broke the
+scanner outright, and this release fixes the five that quietly cost the user something — plus the friction
+items filed alongside them.
+
+### Added
+- **`jobscan-doctor` — one visible line per thing that can silently degrade a scan.** The audit's central
+  finding was that JobScan's failures were indistinguishable from its successes: a config at the wrong path,
+  an employer registry never filled, a Firecrawl connection recorded but never loaded, each produced a scan
+  that *looked* like it worked. `scripts/doctor.mjs` checks everything visible from disk — Node's version,
+  the scripts, the config and its two paths, `profile-core.md`, the title patterns (including whether they
+  are still the shipped demo ones), the employer registry, the feed list, the seen-URL cache, the archive's
+  writability, `Applied Index.md`, and any personal file stranded in the plugin folder by a pre-0.3.0
+  install — and prints the one fix for each in plain words. The skill adds the four checks a script cannot
+  make: whether Firecrawl actually *answers* (rather than appearing in the config), whether the `docx` skill
+  is loaded, whether browser tools exist, and what `${CLAUDE_PLUGIN_ROOT}` resolved to. It runs as step zero
+  of every `job-search` run, with explicit triage: fatal stops the scan, degrading continues *and* is
+  recorded in the digest's Process note, thin is mentioned once at the end.
+- **Three maintenance skills, so setup is no longer one-shot.** Every lever — salary floor, avoid-list,
+  employers, file locations — lived in a file the user was deliberately never shown, and the only documented
+  way to change one was to run all 44 interview questions again. Now: **`profile`** ("change my salary
+  floor") edits one setting and re-derives the digest line rather than the digest alone; **`employers`**
+  ("add employers to my job scan") adds or drops targets, re-runs ATS discovery and updates the title
+  patterns, which is the setting that most decides whether a scan finds anything; **`where`** ("where does
+  jobscan keep my files") shows the paths and moves them safely, config included.
+- **Onboarding can be interrupted and resumed.** It previously wrote nothing until Step 4 — forty-four
+  questions, then generation, so a context limit or a closed window lost all of it. It now writes the config
+  as soon as a location is known, appends each interview section to `profile.md` as it is confirmed, and
+  keeps a `setup-state.md` (new template) recording what is done, what is outstanding, and what was
+  declined. Re-running the skill reads that state and asks only what is left; a *completed* setup is offered
+  the three maintenance skills instead of the interview.
+- **README: "What the first scan is like."** The scan is a large consumption event and the docs listed only
+  Claude Code and Word as requirements. The section says it is the most expensive run they will do, that
+  stopping partway is safe, that a first list is short because the employer registry starts nearly empty,
+  and that nothing is ever submitted for them.
+- **README: "About those permission prompts."** "No coding required" was true about typing and false about
+  consent — setup runs `winget` / `brew` / `sudo apt`, `claude mcp add` and `node`, and in Claude Code's
+  default mode each raises an approval prompt showing a raw command line. The section names the exact
+  commands and why, says every one is declinable, and offers "skip anything that needs installing" as an
+  opening instruction.
+
+### Changed
+- **`job-search` writes the digest as it goes.** It was written only at the end, so a user who hit a usage
+  limit partway through had nothing at all — no partial list, no record of what had been checked. The file
+  is now created as soon as the first batch is scored, marked `IN PROGRESS`, and appended to per batch.
+- **Firecrawl is described per sector, honestly.** The README called declining it "genuinely fine", which is
+  true for Greenhouse/Lever-class boards and false for the audience the plugin was built for: NEOGOV,
+  Workday, USAJOBS, CalCareers and Paylocity cannot be read without JS rendering, and `job-search`'s Gate 2
+  refuses to draft against a posting it cannot re-confirm — so for a public-sector search, declining ends
+  the run at the digest with no packets. Onboarding now judges this from the user's actual employer list and
+  says which case they are in.
+- **Connecting Firecrawl now comes with the restart.** MCP servers load at session start, so a server
+  connected during onboarding is unusable in that session — onboarding recorded `firecrawl: connected` and
+  the first scan behaved as though it were not. Both the skill and the README say so at the moment of
+  connecting, matching the Windows `PATH` warning that already existed.
+- **Node.js install guidance no longer produces a broken pipeline.** `sudo apt install nodejs` installs Node
+  12 on Ubuntu 22.04 and Debian 11 — no global `fetch`, so every script dies with a `ReferenceError` that
+  reads like a bug in this plugin. `local-tooling.md` now gives the NodeSource LTS command for those
+  systems, the scripts state a v18 minimum, and onboarding checks `node --version` instead of assuming the
+  install worked.
+- **The `docx` skill is checked, not asserted.** `docx-generation.md` claimed it "ships with Claude Code";
+  availability varies by surface and version, and the fallback quietly hands formatting back to the user.
+  Onboarding and `jobscan-doctor` both check, and say so during setup rather than when a packet is due.
+- **The weekly schedule is described as what it is.** The README listed it as an offered extra; the plugin
+  cannot install a scheduler, and the fallback is cron or Task Scheduler — terminal work for someone
+  promised none. It now says that plainly and notes that asking for the scan weekly is a fine substitute.
+- `docs/HANDOFF.md` documents the seven skills, the new generated files, the Node and Firecrawl
+  prerequisites, and adds two architectural rules to §6: **no silent degradation**, and **nothing personal
+  under the plugin root**.
+- `.gitignore` also excludes `setup-state.md` and `Work Search Log.md`.
+
 ## [0.3.0] - 2026-08-24
 
 ### Fixed

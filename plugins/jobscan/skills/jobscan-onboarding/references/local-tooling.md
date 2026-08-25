@@ -28,7 +28,7 @@ will cost a little to read — want me to try again or move on?") and continue.
 |---|---|---|---|---|
 | **Poppler** | Reads PDFs on disk for free | `winget install oschwartz10612.Poppler` | `brew install poppler` | `sudo apt install poppler-utils` |
 | **Tesseract** | Reads scanned/image-only PDFs | `winget install UB-Mannheim.TesseractOCR` | `brew install tesseract` | `sudo apt install tesseract-ocr` |
-| **Node.js** | Runs the fast ATS scanner | `winget install OpenJS.NodeJS.LTS` | `brew install node` | `sudo apt install nodejs` |
+| **Node.js** | Runs the fast ATS scanner | `winget install OpenJS.NodeJS.LTS` | `brew install node` | see the note below — apt alone is not enough on older releases |
 
 **Poppler is the highest-value install.** Two binaries matter: `pdftotext` extracts text from any PDF that
 has a text layer, and `pdftoppm` renders pages to images so you can *look at* a page that has none. Without
@@ -41,6 +41,27 @@ no text layer at all** — emailed offer letters, agency forms, postings saved a
 speed and cost optimization, not a requirement — without it, scanning falls back to web search and the
 system still works. Offer it as "a faster, cheaper scan"; if installing Node is friction the user doesn't
 want, skip it and say the search will lean on web search instead.
+
+**The scripts need Node v18 or newer, and on Debian/Ubuntu `sudo apt install nodejs` does not give you
+that.** Ubuntu 22.04 ships Node 12 under that name, Debian 11 ships Node 12 as well. Node 12 has no global
+`fetch`, so every script in the pipeline dies immediately with a `ReferenceError` that looks exactly like a
+bug in this plugin. Always check what you actually installed:
+
+```bash
+node --version
+```
+
+If it is below v18, install the current LTS from NodeSource instead — one command, and it replaces the old
+package:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt install -y nodejs
+```
+
+That needs the user's password, so it is one of the few lines that legitimately goes to them: say in one
+sentence that it installs the current Node.js, and offer to skip the pipeline instead. Recent releases
+(Ubuntu 24.04, Debian 12) ship v18+ from plain `apt` and need none of this — which is why you check the
+version rather than guessing from the distribution.
 
 **On Windows, restart the terminal — and the editor or agent — after any install.** These installers modify
 `PATH`, and an already-running process keeps the old copy. A tool can be correctly installed and still look

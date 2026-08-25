@@ -7,8 +7,9 @@ cover letters. It **prepares packets; it never submits applications.**
 
 Built for research-to-industry transitions and designed to adapt to any field — plant pathology, data
 science, ecology, whatever your profile is. A guided onboarding skill reads your CV, interviews you about
-what it can't know, and builds your candidate profile, so you don't start from a blank file. **No coding
-required at any point** — if something needs installing, Claude installs it.
+what it can't know, and builds your candidate profile, so you don't start from a blank file. **You never have
+to write, read, or understand a line of code** — if something needs installing, Claude installs it, though it
+will ask your permission first and [those prompts look technical](#about-those-permission-prompts).
 
 ## What's in the box
 
@@ -21,7 +22,18 @@ Two cooperating skills plus onboarding:
 - **`jobscan-onboarding`** — a one-time setup that starts from your CV, asks only what the CV can't answer,
   and generates your personal `profile.md`, its compressed `profile-core.md` digest, per-tier base résumés, a
   voice file, and an empty applied-index. You can read [every question it asks](docs/INTERVIEW-QUESTIONS.md)
-  before installing anything.
+  before installing anything. It can be **stopped and resumed** — answers are saved as you give them.
+
+Plus four small skills for afterwards, so nothing is set in stone:
+
+- **"check my job scanner"** — reports every part of the setup that isn't working, in plain words, with the
+  one fix for each. It also runs automatically before every scan, so a broken piece is named rather than
+  silently skipped.
+- **"change my salary floor"** (or your locations, avoid-list, fit floor, writing voice) — changes one
+  setting without re-running the interview.
+- **"add employers to my job scan"** — adds or drops the organizations it watches and updates the job titles
+  it matches. This is the one you'll use most: a target list grows all year.
+- **"where does jobscan keep my files"** — shows where everything is, and moves it if you want it elsewhere.
 
 It is built around **token-efficiency** (a compressed profile digest, per-tier résumé scaffolds you *edit*
 rather than regenerate, a single de-dup index instead of rescanning folders) and **verification discipline**
@@ -90,6 +102,44 @@ is uploaded here.
 Run my weekly job search
 ```
 
+### What the first scan is like
+
+**It's the biggest run you'll do.** A full scan pulls thousands of postings from employers' job boards,
+throws most of them out on the job title alone, then reads, verifies and scores what survives. Expect it to
+take a while and to use a meaningful chunk of whatever plan you're on — later scans are much cheaper, because
+everything already seen is skipped.
+
+**Stopping partway is safe.** The digest file is written from the first batch onward, not at the end, so if
+you run out of usage or just close the window, you keep what was found up to that point — it's on your disk,
+not in the chat. Ask for the scan again later and everything already screened is skipped, so you don't pay
+twice for the same postings.
+
+**Expect a short first list.** The scanner is only as good as the employer list behind it, and yours starts
+nearly empty. The figures quoted in this project's own notes (~1,950 postings a week, ~87% filtered out for
+free) come from a registry of two dozen employers that had been tuned over months. Day one is more like a
+handful of employers and a handful of matches. Say *"add employers to my job scan"* whenever another one
+occurs to you — that single list is what makes the difference, and it grows all year.
+
+**Nothing is ever submitted for you.** The scan stops at a digest; drafting happens when you pick a job, and
+you send the application yourself.
+
+### About those permission prompts
+
+Setup installs a few small things for you — a PDF reader, Node.js for the fast scanner, a connection to
+Firecrawl. In Claude Code's default mode, **you'll be asked to approve each command before it runs**, and the
+prompt shows the raw command line. It looks technical because it is, and one of them may ask for your
+computer's password.
+
+That's the system working, not something going wrong. What you'll see is roughly:
+
+- `winget install …` / `brew install …` / `sudo apt install …` — installing a free tool
+- `claude mcp add … firecrawl …` — connecting the page reader
+- `node …` — running the scanner
+
+**Every one of them is optional.** Declining any prompt is a valid answer: setup carries on and tells you
+what you'll be missing. If you'd rather not decide in the moment, say *"skip anything that needs
+installing"* at the start and Claude won't offer them at all.
+
 ### Keeping JobScan up to date
 
 **Plugins do not quietly update themselves.** Claude Code pins an installed plugin to the version in its
@@ -129,16 +179,26 @@ the plugin's own code, so there is nothing to back up first.
 as `.docx` files you open and edit in whichever office app you already have, and both export a PDF when a job
 portal insists on one. No converters, no toolchains, no programming languages.
 
-You never have to open a terminal, edit a configuration file, or run a command. Where setup needs something
-installed, Claude installs it and tells you in a sentence what it did.
+You never have to open a terminal, edit a configuration file, or type a command. Where setup needs something
+installed, Claude runs the command itself and tells you in a sentence what it did — you approve it, and
+[you can decline any of them](#about-those-permission-prompts).
 
 Three optional extras, each of which Claude offers during setup and each of which you can decline:
 
-- **[Firecrawl](https://www.firecrawl.dev/)** — makes JavaScript-heavy government portals (NEOGOV, Workday,
-  USAJOBS, CalCareers) cheaper and more reliable to read. **Declining is genuinely fine:** without it the
-  scanner falls back to ordinary web search and still works. If you want it, say *"set up Firecrawl for my
-  job scan"* and Claude takes one of two routes — neither needs a terminal, and neither needs you to add
-  another plugin marketplace:
+- **[Firecrawl](https://www.firecrawl.dev/)** — reads JavaScript-heavy job portals (NEOGOV, Workday,
+  USAJOBS, CalCareers, Paylocity) that an ordinary page fetch cannot see at all. **Whether you can skip it
+  depends entirely on where you're applying**, so be honest with yourself about your own target list:
+  - **Applying mostly to government agencies, universities, or big enterprises?** Their postings live on
+    exactly those portals. JobScan refuses to draft an application against a posting it can't confirm is
+    still open — that rule is what keeps it from inventing jobs — so without Firecrawl (or browser tools)
+    those roles reach your digest marked `UNVERIFIED` and **no packet gets written for them.** For a
+    public-sector search, this extra is effectively required, not optional.
+  - **Applying mostly to companies on Greenhouse, Lever, SmartRecruiters, Ashby or Workable?** Ordinary
+    fetching reads those fine, and **declining is genuinely fine.**
+
+  Onboarding checks which of the two you are once it knows your employers, and tells you which case you're
+  in. If you want it, say *"set up Firecrawl for my job scan"* and Claude takes one of two routes — neither
+  needs a terminal, and neither needs you to add another plugin marketplace:
   - **Free, no sign-up.** Claude connects Firecrawl's hosted server at `https://mcp.firecrawl.dev/v2/mcp`.
     No account and no API key. It's rate-limited per day, and covers reading a page and searching — which is
     what the scan uses it for.
@@ -146,10 +206,18 @@ Three optional extras, each of which Claude offers during setup and each of whic
     has, so it installs with `/plugin install firecrawl@claude-plugins-official`. Then `/firecrawl:setup`
     asks for a free API key from [firecrawl.dev](https://www.firecrawl.dev/), which raises the daily limits
     and unlocks the rest of its tools.
+
+  Either way, **restart Claude Code once after connecting it.** Tools like this are loaded when a session
+  starts, so a scan run in the same session behaves as if Firecrawl were never set up.
 - **A faster scanner.** Claude can pull openings straight from employers' own job boards instead of searching
   for them — far cheaper and more complete. It needs Node.js, which Claude installs for you. Decline it and
-  the scan uses web search instead.
-- **A weekly schedule**, so the scan runs without you having to ask.
+  the scan uses web search every week instead: slower and more expensive, but it works. (On older Linux
+  systems the version in the package manager is too old to run it; Claude checks and installs a current one.)
+- **A weekly schedule**, so the scan runs without you having to ask. Worth knowing before you count on it:
+  JobScan can't install a scheduler itself. If your Claude surface offers scheduled tasks, Claude registers
+  one for you; otherwise this means your operating system's own scheduler, which is genuinely technical, and
+  either way the machine has to be awake at the time. Asking for the scan yourself once a week is a perfectly
+  good substitute.
 
 ## Already have skills named `job-search` / `job-applications`?
 
