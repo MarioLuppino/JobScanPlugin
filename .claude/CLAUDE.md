@@ -19,6 +19,22 @@ undone and why.
 
 Reporting what you *did* is not a handoff; that stays in the chat, brief.
 
+## The public repo is a product, not a workspace
+
+JobScan is downloaded by people who do not code and have never used Claude. Every
+file they can see should read as product. Development scaffolding lives in
+`.claude/`, which ships to nobody: the marketplace installs `./plugins/jobscan`
+and nothing else.
+
+So: **`CHANGELOG.md` and the GitHub release pages record what changed in the
+plugin.** Changes under `.claude/` are not a release and never appear in either.
+Commit messages and PR bodies are the record for those. Keep session vocabulary —
+handoffs, containers, scratchpads, artifacts, this proxy's HTTP 403 — out of
+every file outside `.claude/`, and out of release pages.
+
+`docs/ARCHITECTURE.md` is the contributor-facing document. It is public on
+purpose; keep it about the system, not about how a session works on it.
+
 ## Invariant — the 44 interview questions
 
 `docs/INTERVIEW-QUESTIONS.md` and

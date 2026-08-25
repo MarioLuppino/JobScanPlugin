@@ -4,12 +4,35 @@ description: Ship a JobScan version or open its pull request — version bump, t
 argument-hint: "[version, e.g. 0.5.0]"
 ---
 
-Everything between "the work is committed" and "the release page is live". A session can do all of it
-except two steps: **creating the tag and publishing the release page are browser work.** Step 6 says why,
-and how to hand them over so they take the user under a minute.
+Everything from "is there anything to ship?" to "the release page is live". A session can do all of it
+except two steps: **creating the tag and publishing the release page are browser work.** Step 6 says why.
 
-If the ask is only "open a PR", run Steps 1 to 5 and stop. Step 1 still applies: a plugin change that
+If the ask is only "open a PR", run Steps 0 to 5 and stop. Step 1 still applies: a plugin change that
 reaches nobody has not shipped.
+
+## Step 0 — Establish there is something to ship
+
+A version number is a promise that something changed for the person who installed the plugin. Being handed
+one does not skip this step: "cut a 0.4.1" is a request to find out whether a 0.4.1 exists, not permission
+to invent one.
+
+- **A patch is triggered by a defect, so find and reproduce it before anything else.** Name the wrong
+  behaviour, run it, keep the output. A patch whose defect was never reproduced is a guess, and the release
+  notes cannot honestly describe what it fixes.
+- **A minor is triggered by work already done.** Read what has landed since the last tag:
+  `git log --oneline $(git describe --tags --abbrev=0)..origin/main`.
+- **Changes under `.claude/` are never a release.** The marketplace installs `./plugins/jobscan` and nothing
+  else, so maintainer tooling reaches no user. If nothing under `plugins/` changed, there is no version to
+  cut.
+
+Where the defects have actually been: the newest code, and anywhere two callers resolve the same thing by
+different routes. 0.4.1 was `doctor.mjs` reading the personal config files straight from `<data_path>/ats`
+while every scanner script resolved them through `paths.mjs` — so a working install was reported broken by
+the one tool whose job is reporting the truth. **Comparing what a script says against what the scan does is
+the highest-yield check in this repository.**
+
+**If nothing turns up, say so and stop.** An empty version bump costs every install a re-download and adds a
+`CHANGELOG.md` section that says nothing. "There is no 0.4.1 here" is a complete answer.
 
 ## Step 1 — Set the version
 
@@ -63,6 +86,13 @@ Drop any of the three that would be empty. Take the date from the environment co
 it. Each bullet leads with the user-visible thing in bold, then the defect it closes — not the file that
 changed. `git log` already records files.
 
+**Only plugin changes go in it.** `CHANGELOG.md` is read by people who installed a job scanner and want to
+know what is new in it, so a change under `.claude/` never appears there — nor on a release page. The commit
+message and the PR body are the record for maintainer tooling. The same goes for the vocabulary: handoffs,
+containers, scratchpads and this proxy's HTTP 403 are session mechanics, invisible to a user, and belong in
+neither file. 0.3.0 shipped a changelog entry about handoff-document layout and dark-mode tokens; it had to
+be taken back out.
+
 The preflight script fails if `plugin.json` says 0.5.0 and no `## [0.5.0]` heading exists, which catches the
 half-done bump in both directions.
 
@@ -110,19 +140,27 @@ After the merge, two things remain and **neither can be done from a session**:
    `get_release_by_tag`, `list_tags`, `get_tag`. There is no create-release and no create-tag tool. Check
    before assuming this is still true; if one appears, this step stops being manual.
 
-So hand them over ready to execute, in one message:
+Hand over three things, wherever they end up delivered:
 
 - the exact tag name (`v0.5.0`) and **the commit it points at — the merge commit on `main`, not the branch
   head**;
-- the release title on its own line, and the body in a fenced block so it pastes as raw Markdown;
-- the URL that opens the form pre-filled: `https://github.com/MarioLuppino/JobScanPlugin/releases/new?tag=v0.5.0`
+- the release title, and the body written per `references/release-notes.md` in this skill directory;
+- the URL that opens the form pre-filled:
+  `https://github.com/MarioLuppino/JobScanPlugin/releases/new?tag=v0.5.0`
 
-Write the body per `references/release-notes.md` in this skill directory.
+**Where those three go depends on whether the user is still here, and the two cases are exclusive.** Never
+do both: `CLAUDE.md` forbids the same content living in two places, and the release body is long.
 
-**If the session ends with these outstanding, they are remaining work, and `CLAUDE.md` is explicit that
-remaining work goes in a handoff document rather than the chat.** The release body in particular has no home
-on disk and dies with the container. Ask the user to run `/handoff` — the skill carries
-`disable-model-invocation`, so it cannot be invoked on their behalf.
+- **They are acting on it now.** All three in one chat message, the body in a fenced block so it pastes as
+  raw Markdown.
+- **The session is ending with the steps outstanding.** They are remaining work, which `CLAUDE.md` sends to
+  a handoff document rather than the chat — and the release body in particular has no home on disk and dies
+  with the container. All three go in the handoff; the chat gets its link and one line of context, nothing
+  else. Ask the user to run `/handoff`, which carries `disable-model-invocation` and so cannot be invoked on
+  their behalf.
+
+When it is unclear which case applies, it is the second. A merge you are waiting on is not the user acting
+now.
 
 ## Step 7 — Confirm it actually landed
 
@@ -146,4 +184,4 @@ Then `mcp__github__list_releases` for the published pages, and `mcp__github__lis
 
 Nothing needs resubmitting downstream. Anthropic's community catalog pins an approved plugin to a commit SHA
 and CI bumps that pin as commits land, syncing nightly, so a merge to `main` reaches it on its own. See
-`docs/HANDOFF.md` section 9.
+`docs/ARCHITECTURE.md` section 9.

@@ -77,20 +77,38 @@ export const ATS_DIR = join(DATA_DIR, 'ats');
 let warnedLegacy = false;
 
 /**
- * Resolve a personal config or cache file for reading.
+ * Where one of the user's own files actually is, or null if they do not have it.
+ *
+ * Deliberately no example fallback and no notice printed: a caller asking this is
+ * asking about the *user's* state, and a shipped demo file is not that. Anything
+ * wanting the demo as a working default calls readPath() instead.
+ *
+ * @param {string} name e.g. 'employers.json'
+ * @returns {{path: string, isLegacy: boolean}|null}
+ */
+export function locate(name) {
+  const current = join(ATS_DIR, name);
+  if (existsSync(current)) return { path: current, isLegacy: false };
+
+  // An install from before the split still has its files beside the scripts.
+  const legacy = join(SCRIPTS_DIR, name);
+  if (existsSync(legacy)) return { path: legacy, isLegacy: true };
+
+  return null;
+}
+
+/**
+ * Resolve a personal config or cache file for reading, falling back to the
+ * shipped example so a fresh install still runs.
  *
  * @param {string} name      e.g. 'employers.json'
  * @param {string} [example] shipped default in SCRIPTS_DIR to fall back to
  * @returns {{path: string, isExample: boolean, isLegacy: boolean}|null}
  */
 export function readPath(name, example = null) {
-  const current = join(ATS_DIR, name);
-  if (existsSync(current)) return { path: current, isExample: false, isLegacy: false };
-
-  // An install from before the split still has its files beside the scripts.
-  const legacy = join(SCRIPTS_DIR, name);
-  if (existsSync(legacy)) {
-    if (!warnedLegacy) {
+  const found = locate(name);
+  if (found) {
+    if (found.isLegacy && !warnedLegacy) {
       warnedLegacy = true;
       console.error(
         `jobscan: reading config from the plugin folder (${SCRIPTS_DIR}).\n` +
@@ -98,7 +116,7 @@ export function readPath(name, example = null) {
         `         or re-run jobscan-onboarding, which does it for you.`
       );
     }
-    return { path: legacy, isExample: false, isLegacy: true };
+    return { path: found.path, isExample: false, isLegacy: found.isLegacy };
   }
 
   if (example) {
