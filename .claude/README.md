@@ -13,6 +13,7 @@ this repository.
 | `CLAUDE.md` | Repository conventions loaded into every session working here. |
 | `skills/release/` | Cutting a version: the gates, the CHANGELOG entry, the PR, the release notes. |
 | `skills/handoff/` | Writing a session handoff document. |
+| `handoffs/` | The handoff documents themselves — plain Markdown, one per thread of open work. |
 
 ## The rule that keeps the two apart
 

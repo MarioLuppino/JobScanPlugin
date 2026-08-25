@@ -161,10 +161,10 @@ do both: `CLAUDE.md` forbids the same content living in two places, and the rele
 - **They are acting on it now.** All three in one chat message, the body in a fenced block so it pastes as
   raw Markdown.
 - **The session is ending with the steps outstanding.** They are remaining work, which `CLAUDE.md` sends to
-  a handoff document rather than the chat — and the release body in particular has no home on disk and dies
-  with the container. All three go in the handoff; the chat gets its link and one line of context, nothing
-  else. Ask the user to run `/handoff`, which carries `disable-model-invocation` and so cannot be invoked on
-  their behalf.
+  a handoff document rather than the chat — and the release body in particular has no other home on disk,
+  so a handoff that is written but never pushed loses it with the container. All three go in the handoff;
+  the chat gets its path and one line of context, nothing else. Ask the user to run `/handoff`, which
+  carries `disable-model-invocation` and so cannot be invoked on their behalf.
 
 When it is unclear which case applies, it is the second. A merge you are waiting on is not the user acting
 now.
