@@ -40,6 +40,18 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"
 A file still sitting beside the scripts from an older install is read anyway, with a one-line notice telling
 you to move it. Nothing is ever written back there.
 
+**When a scan comes back thin, start here:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs"
+```
+
+It checks every precondition — Node's version, the config and its two paths, the profile digest, the title
+patterns (including whether they are still the shipped demo ones), the employer registry, the feed list, the
+archive's writability, `Applied Index.md`, and anything stranded in the plugin folder by a pre-0.3.0 install
+— and prints one line per check with the fix. Most "the scanner found nothing" reports are one of these, not
+a quiet week.
+
 ## Quick start
 
 ```bash
@@ -68,6 +80,7 @@ unedited and almost nothing will match, because the defaults are deliberately ge
 | File | Purpose |
 |---|---|
 | `paths.mjs` | Resolves plugin root vs. data directory vs. archive. Run it alone to print all of them. |
+| `doctor.mjs` | Checks every precondition and prints one line each, with the fix. Start here when a scan is thin. |
 | `fetch-ats.mjs` | Pulls every registered feed, normalizes, triages. The main entry point. |
 | `triage.mjs` | Zero-token title/location/salary filter. `match` / `review` / `exclude`. |
 | `dedup.mjs` | Screens against your applied-index and a persistent seen-URL cache. |
