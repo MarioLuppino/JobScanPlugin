@@ -10,6 +10,19 @@ except two steps: **creating the tag and publishing the release page are browser
 If the ask is only "open a PR", run Steps 0 to 5 and stop. Step 1 still applies: a plugin change that
 reaches nobody has not shipped.
 
+## One paragraph, one line
+
+Everything this skill writes for a reader — the `CHANGELOG.md` entry, the PR body, and both halves of the
+release notes file — puts each paragraph, bullet and numbered item on a single unbroken line, however the
+files around it happen to be wrapped. GitHub renders all three as Markdown and wraps them to the reader's
+own window. A hard wrap is a guess about a width nobody has: it reflows badly when the body is pasted into
+the release form, it turns a two-word edit into a rewrap of the whole paragraph, and a command split across
+two lines is a command that does not run when someone copies it.
+
+Two exceptions, both deliberate. Line breaks inside fenced blocks are literal, so they stay as written.
+**Git commit messages keep the ordinary 72-column wrap** — GitHub shows a commit body in a fixed-width
+block and does not wrap it for you, so there the hard wrap is what makes it readable.
+
 ## Step 0 — Establish there is something to ship
 
 A version number is a promise that something changed for the person who installed the plugin. Being handed

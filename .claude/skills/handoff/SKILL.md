@@ -126,6 +126,13 @@ stopped doing its job.
 No em dashes anywhere in the document. Plain sentences, concrete nouns, absolute paths, real command lines.
 Write for someone who was not here: name the file, the branch, the PR number, the error string.
 
+**One paragraph is one line.** Do not hard-wrap the document's prose to a column width, however the files
+around it happen to be wrapped. Every paragraph, bullet and numbered item runs as a single unbroken line and
+wraps itself to whatever window it is read in. A hard wrap is a guess about a width the reader does not
+have: it reflows badly the moment the text is pasted somewhere narrower or wider, it turns a two-word edit
+into a rewrap of the whole paragraph, and a command broken across two lines is a command that no longer
+runs when someone copies it. Line breaks are literal only inside fenced blocks.
+
 ## Persistent memory comes first
 
 Before writing, check whether the project has memory (a `memory/MEMORY.md` under the project's Claude
