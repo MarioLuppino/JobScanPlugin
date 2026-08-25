@@ -282,7 +282,7 @@ copy of it. When adapting or forking, keep it that way: share the machine, never
 
 Everything domain-specific lives in your generated `profile.md` and in `references/sources.md` (the boards and
 keywords). The skills, formatting rules, verification gates, and filing system are field-agnostic. See
-[`docs/HANDOFF.md`](docs/HANDOFF.md) for the full architecture and a step-by-step adaptation guide.
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full architecture and a step-by-step adaptation guide.
 
 ## License
 

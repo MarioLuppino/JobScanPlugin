@@ -86,6 +86,13 @@ Drop any of the three that would be empty. Take the date from the environment co
 it. Each bullet leads with the user-visible thing in bold, then the defect it closes — not the file that
 changed. `git log` already records files.
 
+**Only plugin changes go in it.** `CHANGELOG.md` is read by people who installed a job scanner and want to
+know what is new in it, so a change under `.claude/` never appears there — nor on a release page. The commit
+message and the PR body are the record for maintainer tooling. The same goes for the vocabulary: handoffs,
+containers, scratchpads and this proxy's HTTP 403 are session mechanics, invisible to a user, and belong in
+neither file. 0.3.0 shipped a changelog entry about handoff-document layout and dark-mode tokens; it had to
+be taken back out.
+
 The preflight script fails if `plugin.json` says 0.5.0 and no `## [0.5.0]` heading exists, which catches the
 half-done bump in both directions.
 
@@ -177,4 +184,4 @@ Then `mcp__github__list_releases` for the published pages, and `mcp__github__lis
 
 Nothing needs resubmitting downstream. Anthropic's community catalog pins an approved plugin to a commit SHA
 and CI bumps that pin as commits land, syncing nightly, so a merge to `main` reaches it on its own. See
-`docs/HANDOFF.md` section 9.
+`docs/ARCHITECTURE.md` section 9.

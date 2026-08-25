@@ -97,7 +97,7 @@ items filed alongside them.
 - **The weekly schedule is described as what it is.** The README listed it as an offered extra; the plugin
   cannot install a scheduler, and the fallback is cron or Task Scheduler — terminal work for someone
   promised none. It now says that plainly and notes that asking for the scan weekly is a fine substitute.
-- `docs/HANDOFF.md` documents the seven skills, the new generated files, the Node and Firecrawl
+- `docs/ARCHITECTURE.md` documents the seven skills, the new generated files, the Node and Firecrawl
   prerequisites, and adds two architectural rules to §6: **no silent degradation**, and **nothing personal
   under the plugin root**.
 - `.gitignore` also excludes `setup-state.md` and `Work Search Log.md`.
@@ -151,23 +151,10 @@ items filed alongside them.
   plain-words ask ("Update my JobScan plugin"), the two typed commands behind it
   (`/plugin marketplace update jobscan`, `/plugin update jobscan@jobscan`), and notes that installs from the
   community marketplace do refresh in the background.
-- **`HANDOFF.md` §9 documents both distribution paths.** JobScan's own marketplace doesn't auto-update; the
+- **`ARCHITECTURE.md` §9 documents both distribution paths.** JobScan's own marketplace doesn't auto-update; the
   community catalog pins a commit SHA but CI bumps that pin automatically as commits are pushed, so a merged
   change reaches the catalog without a fresh submission (nightly sync, so allow a day). Either way the
   `version` pin still gates delivery.
-
-#### Changed
-- **`CLAUDE.md`: unfinished work goes in the handoff document, never in the session.** The handoff rule now
-  states plainly that no "what's left", next-steps list, or task list belongs in chat — that content is the
-  handoff document's job, and reporting what was *done* stays brief. The convention itself moved into a real
-  skill at `.claude/skills/handoff/`, so `CLAUDE.md` states the rule and points at the procedure instead of
-  carrying both.
-- **The handoff skill publishes links, not files.** `/handoff` writes the document as an Artifact and hands
-  back a URL, because a file written inside a session container is wiped with the container and a handoff
-  that evaporates before the next chat opens is worthless. `references/layout.md` fixes the page format —
-  state grid, eyebrow-plus-heading sections, status colours, dark-mode tokens — so successive handoffs read
-  as one series. It is a project skill: it loads for anyone working in this repository, cloud sessions
-  included.
 
 Documentation only; shipped as part of 0.3.0.
 
@@ -192,7 +179,7 @@ Documentation only; shipped as part of 0.3.0.
   into their `SKILL.md`, in their structure, with JobScan's verification and formatting rules offered rather
   than imposed. Existing profiles, résumés, and archives are read as interview material instead of being
   regenerated over.
-- **`HANDOFF.md` documents the integration seam** in a new §8: the fixed config path at
+- **`ARCHITECTURE.md` documents the integration seam** in a new §8: the fixed config path at
   `~/.claude/jobscan-data/jobscan-config.md` is what makes the data layer skill-agnostic, so onboarding has
   two legitimate exit points and both should keep working in any fork.
 
