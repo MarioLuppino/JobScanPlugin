@@ -19,7 +19,7 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath,
+  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath, locate,
 } from './paths.mjs';
 
 const MIN_NODE = 18; // global fetch()
@@ -36,6 +36,23 @@ function report(state, label, detail, fix = null) {
 function readJson(path) {
   try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
 }
+
+/**
+ * Read one of the user's own files from wherever it actually resolves.
+ *
+ * Every scanner script reads these through paths.mjs, which still finds a
+ * pre-0.3.0 install's files beside the scripts. This used to look only in
+ * <DATA_DIR>/ats, so such an install was told its employer list and job titles
+ * were missing while the scan was reading them perfectly well — the doctor
+ * raising a false alarm about the very thing it exists to report on.
+ */
+function readPersonal(name) {
+  const found = locate(name);
+  return found ? { data: readJson(found.path), legacy: found.isLegacy } : { data: null, legacy: false };
+}
+
+/** Said once per line that is reading from the old location; the fix is its own check below. */
+const OLD_LOCATION = ', in the plugin folder — see Old file locations';
 
 /** Can we actually create a file here? Existing-and-readable is not the same thing. */
 function writable(dir) {
@@ -104,9 +121,8 @@ else report('fix', 'Profile digest', `no profile-core.md in ${DATA_DIR}`,
   'Run jobscan-onboarding — scoring has nothing to score against without it.');
 
 // 5. Scanner config ----------------------------------------------------------
-const triagePath = join(ATS_DIR, 'triage-config.json');
 const examplePatterns = readJson(join(SCRIPTS_DIR, 'triage-config.example.json'))?.matchTitlePatterns ?? [];
-const triage = readJson(triagePath);
+const { data: triage, legacy: triageLegacy } = readPersonal('triage-config.json');
 if (!triage) {
   report('fix', 'Job titles', `no triage-config.json in ${ATS_DIR}`,
     'Run jobscan-onboarding Step 6, or say "add an employer to my job scan" — without it the feeds are ' +
@@ -118,10 +134,11 @@ if (!triage) {
   report('fix', 'Job titles', 'still the shipped example titles, not the user\'s',
     'Say "update my job titles". The defaults are a demo; they will match almost nothing in a real field.');
 } else {
-  report('ok', 'Job titles', `${triage.matchTitlePatterns.length} title patterns`);
+  report('ok', 'Job titles', `${triage.matchTitlePatterns.length} title patterns${triageLegacy ? OLD_LOCATION : ''}`);
 }
 
-const employers = readJson(join(ATS_DIR, 'employers.json'))?.employers;
+const { data: employersFile, legacy: employersLegacy } = readPersonal('employers.json');
+const employers = employersFile?.employers;
 if (!Array.isArray(employers) || employers.length === 0) {
   report('fix', 'Employer list', `no employers registered in ${ATS_DIR}`,
     'Say "add employers to my job scan". The benchmark figures in the docs come from a registry of two ' +
@@ -129,11 +146,13 @@ if (!Array.isArray(employers) || employers.length === 0) {
 } else {
   const state = employers.length < 5 ? 'note' : 'ok';
   report(state, 'Employer list', `${employers.length} employer${employers.length === 1 ? '' : 's'}` +
-    (state === 'note' ? ' — thin; results grow steeply up to about two dozen' : ''),
+    (state === 'note' ? ' — thin; results grow steeply up to about two dozen' : '') +
+    (employersLegacy ? OLD_LOCATION : ''),
     state === 'note' ? 'Say "add employers to my job scan" whenever you think of another one.' : null);
 }
 
-const feeds = readJson(join(ATS_DIR, 'ats-feeds.json'))?.feeds;
+const { data: feedsFile, legacy: feedsLegacy } = readPersonal('ats-feeds.json');
+const feeds = feedsFile?.feeds;
 const hasEmployers = Array.isArray(employers) && employers.length > 0;
 if (!Array.isArray(feeds) || feeds.length === 0) {
   report('fix', 'Job feeds', hasEmployers
@@ -143,10 +162,10 @@ if (!Array.isArray(feeds) || feeds.length === 0) {
       ? `Run: node "${join(SCRIPTS_DIR, 'discover-ats.mjs')}"  (and discover-workday.mjs for large employers).`
       : 'Register employers first, then the probe above builds this file.');
 } else {
-  report('ok', 'Job feeds', `${feeds.length} live feed${feeds.length === 1 ? '' : 's'}`);
+  report('ok', 'Job feeds', `${feeds.length} live feed${feeds.length === 1 ? '' : 's'}${feedsLegacy ? OLD_LOCATION : ''}`);
 }
 
-const seen = readJson(join(ATS_DIR, 'seen-urls.json'));
+const { data: seen } = readPersonal('seen-urls.json');
 const seenCount = Array.isArray(seen) ? seen.length : Object.keys(seen ?? {}).length;
 report('note', 'Seen-URL cache',
   seenCount ? `${seenCount} posting${seenCount === 1 ? '' : 's'} already screened out` : 'empty — first run');
