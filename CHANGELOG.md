@@ -10,6 +10,28 @@ they open. The audit behind 0.3.0 and 0.4.0 was about a scan that quietly did le
 the places where a correct system still loses somebody — a plugin that installed but never loaded, files in a
 format nobody warned them about, and a setup check that greets a brand-new install with eight failures.
 
+It also closes the two things the audit found were missing outright rather than wrong: there was no way to
+undo a setup, and a scan that ran while you were asleep had nowhere to leave its answer.
+
+### Added
+- **A way to start over, and a way to leave — the `reset` skill.** Every other lever got a skill in 0.4.0:
+  `profile` changes a setting, `employers` changes the targets, `where` moves the files. **Nothing removed
+  anything.** So a setup built on a bad answer in the first ten minutes — a misread CV, the wrong target
+  field, a location regretted the moment it was named — had no sentence to say, because re-running
+  onboarding *resumes*, which is right for an interrupted interview and exactly wrong for this one. Saying
+  *"start my jobscan setup over"* now shows what exists first, moves the old profile and `setup-state.md`
+  aside instead of deleting them (which is also what makes onboarding start a real interview rather than
+  continue the old one), and keeps every application already filed. The archive is kept by default on every
+  route and asked about separately when it isn't — those folders are a record of what the user *did*, and a
+  `Work Search Log.md` may be required evidence for unemployment benefits. The skill also clears what the
+  scanner remembers, which is how a role passed on by mistake comes back, and covers removal:
+  `/plugin uninstall jobscan@jobscan` takes the code and **leaves every file JobScan made you**, exactly
+  where it is. That has always been true — it is the same rule that stops `/plugin update` destroying an
+  employer registry — and until now nothing said it.
+- **"Show me last week's digest."** Reads back the most recent digest without running a scan: the count, the
+  top few with their apply links, and the date on it. It is the only route back to a run nobody was present
+  for, and an empty digest folder is now an answer ("no scan has finished here") rather than an error.
+
 ### Fixed
 - **`jobscan-doctor` no longer reports a brand-new install as broken.** Every check but Node and the scripts
   themselves resolves against a file that onboarding creates, so an install which has never been through
@@ -38,6 +60,30 @@ format nobody warned them about, and a setup check that greets a brand-new insta
   paths. Checked against the published catalog: there is no `jobscan` entry, so that install command fails
   today. The README now says there is one place to get JobScan and that no copy of it updates itself;
   `ARCHITECTURE.md` keeps the mechanics, labelled as the route worth taking rather than one already taken.
+- **A scheduled scan had nowhere to deliver its result.** `job-search` ended a run by notifying "with the top
+  matches + apply links inline" — a chat message, which is correct when the user is there and worthless at
+  07:00 on a Monday, which is the entire point of a schedule. The digest was already being written to disk,
+  so the answer existed; nothing told anyone it was there. A week with no matches and a week where the scan
+  never fired were indistinguishable, which is a scheduler nobody has a reason to trust. `scheduling.md`,
+  the task template, onboarding and the README now all say where an unattended run leaves its file and give
+  the sentence that retrieves it, and `job-search` treats the digest file — not a chat summary — as the
+  deliverable of an unattended run, with anything that would have been said in chat written into the file.
+- **`scheduling.md` promised a scheduler that may not exist.** It listed "Claude Code `schedule` skill /
+  scheduled agents (routines)" and said asking for one "registers a cron-backed routine that runs this
+  prompt", flatly. The README above it hedged correctly — *"If your Claude surface offers scheduled
+  tasks"* — but `scheduling.md` is the file Claude actually reads when the user asks, so the confident
+  version was the one that ran: an attempt at something the surface may not have, then a quiet fall back to
+  cron, which is terminal work for someone promised none. It now says to check this surface first, to say
+  plainly when the answer is nothing, and never to report a schedule as registered when what happened was a
+  fallback.
+- **The setup check speaks in folder names, not absolute paths.** `doctor.mjs` printed fully resolved paths
+  — `/Users/…/.claude/jobscan-data/ats` — and both `jobscan-doctor` and `where` carried an instruction to
+  translate them into something a person would recognise in Finder before reading them out. That worked
+  most of the time, which is the problem: it depended on the model remembering, every time, and the failure
+  was a raw path shown to the one audience promised they would never see one. The script now does it
+  itself, printing the last two segments with a home-relative prefix (`~/…/jobscan-data/ats`), with
+  `--full` for the maintainer question of where a path actually resolved. A path inside a command the agent
+  runs is untouched — a shortened one would not resolve — and `paths.mjs` still prints everything in full.
 
 ### Changed
 - **The permission prompt that comes first is now the one the README prepares you for.** "About those
@@ -50,6 +96,14 @@ format nobody warned them about, and a setup check that greets a brand-new insta
   public-sector search Firecrawl is "effectively required, not optional" — for exactly the audience the
   plugin was built for. The claim is scoped, and the sector caveat is stated where the list is rather than
   after it.
+- **The README stops turning into developer documentation two-thirds of the way down.** Everything a
+  non-technical reader needs was finished well before the end, and the rest — skill namespacing,
+  `disable-model-invocation`, the four ways to combine JobScan with a personal routine, the fixed-config
+  integration contract — is addressed to someone who already has a `SKILL.md` of their own. It is good
+  material and it was in the wrong place: a page that opens by promising you will never read a line of code
+  should not end in frontmatter keys. It now lives in
+  [`docs/USING-WITH-YOUR-OWN-SKILLS.md`](docs/USING-WITH-YOUR-OWN-SKILLS.md), with a short pointer where it
+  used to be. The audience for it arrives looking for it; the audience for the install does not.
 
 ## [0.4.1] - 2026-08-25
 

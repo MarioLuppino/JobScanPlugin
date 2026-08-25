@@ -32,6 +32,11 @@ two paths, the data folder, `profile-core.md`, the job-title patterns, the emplo
 the seen-URL cache, the archive folder and its writability, `Applied Index.md`, and any personal file
 stranded inside the plugin folder by a pre-0.3.0 install.
 
+**The paths it prints are already shortened** — `~/…/jobscan-data/ats` rather than the absolute path — so
+read them out as they come. That is the folder name the user would recognise in Finder or File Explorer.
+Add `--full` only when someone is checking where a path actually resolved, which is a maintainer's question,
+not a user's. A path inside a command the script hands you stays absolute: run it exactly as given.
+
 ### If it says "not set up yet", stop there
 
 Every check but the first two resolves against a file onboarding creates, so an install that has never been

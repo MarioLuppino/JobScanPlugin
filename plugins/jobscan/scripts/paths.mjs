@@ -29,7 +29,7 @@
  */
 
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
-import { dirname, join, resolve, isAbsolute } from 'node:path';
+import { dirname, join, resolve, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 
@@ -124,6 +124,45 @@ export function readPath(name, example = null) {
     if (existsSync(ex)) return { path: ex, isExample: true, isLegacy: false };
   }
   return null;
+}
+
+/**
+ * One path, in the words the user would recognise instead of the ones the
+ * filesystem uses.
+ *
+ * WHY THIS EXISTS: `doctor.mjs` is read aloud to somebody who was promised they
+ * would never have to see a file path, and
+ * `/Users/them/Library/Application Support/…/jobscan-data/ats` tells them
+ * nothing that `~/…/jobscan-data/ats` does not. The skills already say to
+ * translate these before speaking them; depending on the model to do that every
+ * single time is how a raw path reaches a user who cannot act on it.
+ *
+ * Only for lines a person reads. A path inside a command the agent will run
+ * keeps its full form — a shortened one would not resolve.
+ *
+ * @param {string} p        an absolute path
+ * @param {number} [keep]   how many trailing segments to show
+ */
+export function display(p, keep = 2) {
+  if (!p) return String(p);
+  const home = homedir();
+  const norm = (s) => s.replace(/[\\/]+$/, '');
+  let prefix = '';
+  let rest = norm(String(p));
+  const h = norm(home);
+  if (rest === h) return '~';
+  if (rest.startsWith(h + sep) || rest.startsWith(h + '/')) {
+    prefix = '~';
+    rest = rest.slice(h.length + 1);
+  }
+  const rooted = !prefix && /^[\\/]/.test(rest);
+  const parts = rest.split(/[\\/]+/).filter(Boolean);
+  if (parts.length <= keep) {
+    const shown = [prefix, ...parts].filter(Boolean).join('/');
+    return rooted ? `/${shown}` : shown;
+  }
+  const tail = parts.slice(-keep).join('/');
+  return prefix ? `${prefix}/\u2026/${tail}` : `\u2026/${tail}`;
 }
 
 /** Resolve a personal file for writing, creating <DATA_DIR>/ats/ if needed. */

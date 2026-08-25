@@ -4,8 +4,9 @@ description: >-
   Weekly job scanner. Searches the web for ACTIVE job listings the user is a strong fit for, verifies each is
   live, scores it against their profile, ranks the top ~10, and writes a dated digest with direct apply links
   — then hands selected jobs to the job-applications skill. Use whenever the user wants to find jobs, run a
-  job search, "scan for openings", get a weekly list of matches, or check what's out there. Prepares packets
-  for review; never submits. Companion to job-applications.
+  job search, "scan for openings", get a weekly list of matches, or check what's out there — and also to
+  read back a digest a previous or scheduled scan already wrote ("show me last week's digest", "what did
+  Monday's scan find"). Prepares packets for review; never submits. Companion to job-applications.
 ---
 
 # Job Search (weekly scanner)
@@ -233,6 +234,19 @@ marker. A digest that stops halfway is still worth the week; a scan that dies be
 most expensive run they'll do (later scans dedup against the seen-URL cache), and that stopping is safe
 because the digest is on disk from the first batch onward.
 
+### Reading back a digest that already exists
+
+*"Show me last week's digest"*, *"what did Monday's scan find"*, *"did my job search run"* — **do not start a
+scan.** Read `<archive>/Job Search Digests/`, take the most recently dated file (or the one they named), and
+give them the count, the top few with their apply links, and the date on it. Offer the rest rather than
+pasting the whole file, and go straight to `job-applications` if they pick something — a digest written last
+week still needs Gate 2 re-confirming the posting is live, so a stale pick fails loudly rather than quietly.
+
+This is the only route back to a run nobody was present for, so treat an empty folder as an answer rather
+than an error: no digest file means no scan has ever finished here. Say that, and run `jobscan-doctor` if
+they were expecting one — a scheduled run that silently never fired looks exactly like a quiet week, and
+that is the whole reason this route exists.
+
 **Digest first, then draft on selection.** Wait for the user to pick jobs. For each pick, file it into the
 numbered archive and invoke `job-applications`.
 
@@ -251,7 +265,16 @@ numbered archive and invoke `job-applications`.
 
 ## Running as the weekly routine
 
-On schedule or on request: run scan → score → rank → write digest → notify with the top matches + apply
-links inline + the digest location. If genuine fits fall short of the target count after a real search
-effort, report fewer and say so — never lower the bar. To automate the weekly run, see
+**With the user present:** run scan → score → rank → write digest → notify with the top matches + apply links
+inline + the digest location. If genuine fits fall short of the target count after a real search effort,
+report fewer and say so — never lower the bar.
+
+**On a schedule, nobody is reading the chat.** A scheduled run's only durable output is the digest file at
+`<archive>/Job Search Digests/<YYYY-MM-DD> digest.md`, so finish by making sure that file is complete,
+correctly dated and carries its Process note — not by composing a summary no one will see. Anything that
+would have been said in chat and matters (a source branch skipped, Firecrawl unavailable, zero matches this
+week) belongs *in the file*, because the file is all that survives the run.
+
+Whoever registers the schedule owes the user two sentences at that moment: which folder the weekly file
+lands in, and that *"show me last week's digest"* brings it back. To automate the weekly run, see
 `references/scheduling.md`.

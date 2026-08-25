@@ -1,7 +1,7 @@
 {
   "name": "jobscan",
   "version": "0.5.0",
-  "description": "Weekly job scanner + tailored application drafter. Two cooperating skills (find/rank, then map/draft), a guided onboarding skill that builds your candidate profile, a setup check that names every silent failure, and small skills for changing settings, employers and file locations afterwards. Field-agnostic; works for any research-to-industry transition. Prepares packets; never submits.",
+  "description": "Weekly job scanner + tailored application drafter. Two cooperating skills (find/rank, then map/draft), a guided onboarding skill that builds your candidate profile, a setup check that names every silent failure, and small skills for changing settings, employers and file locations afterwards — or starting the whole setup over. Field-agnostic; works for any research-to-industry transition. Prepares packets; never submits.",
   "author": {
     "name": "Mario Luppino"
   },
@@ -22,6 +22,7 @@
     "./skills/jobscan-doctor",
     "./skills/profile",
     "./skills/employers",
-    "./skills/where"
+    "./skills/where",
+    "./skills/reset"
   ]
 }

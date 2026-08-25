@@ -5,7 +5,7 @@ never part of the repo — the plugin ships methodology; your profile is generat
 
 ## 1. Architecture
 
-Three working skills, four maintenance skills, and a data layer:
+Three working skills, five maintenance skills, and a data layer:
 
 - **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → stop.
 - **`job-applications`** (drafter) — deconstruct posting → fit go/no-go → competency→evidence map → tailored
@@ -15,8 +15,8 @@ Three working skills, four maintenance skills, and a data layer:
   questions are tagged `[CV]` / `[ASK]` / `[AUTO]` in `intake-questionnaire.md` and listed for readers in
   [`INTERVIEW-QUESTIONS.md`](INTERVIEW-QUESTIONS.md).
 
-Then four small skills that exist so the setup is not a one-shot, because the levers all live in files the
-user was deliberately never shown:
+Then five small skills that exist so the setup is not a one-shot, because the levers all live in files the
+user was deliberately never shown — and because a setup you cannot undo is not really a setup:
 
 - **`jobscan-doctor`** (check) — every precondition in one visible line, plain words, one fix each. Also runs
   as step zero of `job-search`. `scripts/doctor.mjs` does the disk-checkable half; the skill covers what only
@@ -25,6 +25,11 @@ user was deliberately never shown:
   and re-derives the digest line; never the digest alone.
 - **`employers`** (targets) — add/drop employers, re-run ATS discovery, edit the title patterns.
 - **`where`** (locations) — show and move `data_path` / `archive_path`, then verify.
+- **`reset`** (start over / leave) — rebuild the profile from a fresh interview, clear what the scanner
+  remembers, or remove the data and the plugin. Onboarding *resumes* by design, so a restart needs
+  `setup-state.md` and the partial `profile.md` moved aside; the archive is kept by default on every route,
+  and is asked about separately when it isn't. Also the only place that documents `/plugin uninstall` and
+  what it leaves behind.
 
 Data flow: `jobscan-doctor` → `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** +
 index append).
@@ -39,7 +44,7 @@ Two locations you configure at onboarding:
 - `skills/job-search/SKILL.md` + `references/{sources.md, digest-template.md}`
 - `skills/job-applications/SKILL.md` + `references/{resume-formats-and-ats.md, writing-playbook.md}`
 - `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, local-tooling.md, templates/…}`
-- `skills/{jobscan-doctor,profile,employers,where}/SKILL.md` — maintenance, no references of their own
+- `skills/{jobscan-doctor,profile,employers,where,reset}/SKILL.md` — maintenance, no references of their own
 - `scripts/{paths,doctor,fetch-ats,triage,dedup,discover-ats,discover-workday,calibrate,pipeline}.mjs`
   + `*.example.json` (read-only shipped defaults) + `test-triage.mjs`
 
@@ -128,7 +133,9 @@ career data.
 
 Some users arrive with personal skills already named `job-search` / `job-applications`. That is not a
 collision to avoid — it's the integration case, and the architecture supports it because **the data layer,
-not the skills, is the product.**
+not the skills, is the product.** The reader-facing version of this section — namespacing, triggering, and
+the four ways to combine the two — is [`USING-WITH-YOUR-OWN-SKILLS.md`](USING-WITH-YOUR-OWN-SKILLS.md); what
+follows is why it is built that way.
 
 Claude Code namespaces plugin skills (`/jobscan:job-search`), so the plugin never takes a bare command name
 or shadows a personal skill; the only overlap is model-invoked triggering, which two skills with overlapping

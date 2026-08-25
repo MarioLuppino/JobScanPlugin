@@ -80,6 +80,12 @@ begin again. Read them, tell the user in one line what's already done, and ask o
 is. A completed setup that is re-run should offer the `profile`, `employers` and `where` skills instead —
 changing one setting never needs the interview again.
 
+**Resuming is the wrong answer exactly once:** when the user wants to start over *because something early
+was wrong*. A misread CV or the wrong target field is not an interrupted interview, and continuing one
+rebuilds the same mistake. If that is what they are describing, hand it to the **`reset`** skill — it moves
+the old profile and `setup-state.md` aside, keeps the archive, and hands back here for a genuine fresh
+start.
+
 ## Step 1 — Ask for their CV before you ask them anything else
 
 Opening with question 1 of 44 makes someone re-type a career they already wrote down. Start here instead:
@@ -298,8 +304,18 @@ version. If it's missing, say so now, in one sentence — packets still get buil
 path, but the user does the formatting themselves, and that is much better heard during setup than the first
 time a résumé is due.
 
-Offer the weekly scheduled run (register the task from `references/templates/weekly-scan-task.template.md` —
-see the `job-search` skill's `references/scheduling.md`).
+**Offer the weekly scheduled run, but check first that this surface can actually do it.** Register the task
+from `references/templates/weekly-scan-task.template.md`; the `job-search` skill's `references/scheduling.md`
+carries the rules. Two things matter more than the registration itself:
+
+- **Don't promise a schedule this surface doesn't offer.** Scheduling is the one capability that varies by
+  where Claude is running. If there is nothing here to register with, say so in one sentence and offer the
+  honest alternatives — an OS scheduler, which is real terminal work, or a calendar reminder to ask for the
+  scan themselves. A schedule someone believes in and does not have is worse than none: they stop asking.
+- **Say where an unattended run leaves its result, and how to get it back.** Nobody is reading the chat at
+  07:00 on a Monday. The scan writes a dated file into their `Job Search Digests` folder, and
+  *"show me last week's digest"* is the sentence that retrieves it. Without that, a week with no matches and
+  a week where the scan never ran look identical.
 
 **Finish with the check, and read it out.** Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs"` (the
 `jobscan-doctor` skill covers the rest) and confirm in plain words that everything the scan depends on is in
@@ -315,9 +331,14 @@ files, one per application. Never leave someone to discover this in their Docume
 
 **Say what the first scan is like before they run it:** it's the most expensive run they'll do, later scans
 skip everything already seen, the digest is written as it goes so stopping partway keeps what was found, and
-nothing is ever submitted for them. And tell them the three things they can change later without another
-interview: **"change my salary floor"** and anything else in the profile, **"add employers to my job scan"**,
-and **"where does jobscan keep my files"**.
+nothing is ever submitted for them. Tell them every scan leaves a dated file in their `Job Search Digests`
+folder, and that **"show me last week's digest"** reads it back without running anything.
+
+And tell them the four things they can change later without another interview: **"change my salary floor"**
+and anything else in the profile, **"add employers to my job scan"**, **"where does jobscan keep my files"**,
+and — if this setup turns out to be built on something they got wrong — **"start my jobscan setup over"**.
+Say that last one once, plainly. Someone who mis-answered the salary question in the first ten minutes
+should not conclude they have to live with it.
 
 **Privacy reminder:** everything generated in Steps 4–5 is personal career data. If the user is working
 inside a clone of the repo, confirm `.gitignore` is excluding it. Never commit a filled profile, résumé,

@@ -24,7 +24,7 @@ Two cooperating skills plus onboarding:
   voice file, and an empty applied-index. You can read [every question it asks](docs/INTERVIEW-QUESTIONS.md)
   before installing anything. It can be **stopped and resumed** — answers are saved as you give them.
 
-Plus four small skills for afterwards, so nothing is set in stone:
+Plus five small skills for afterwards, so nothing is set in stone:
 
 - **"check my job scanner"** — reports every part of the setup that isn't working, in plain words, with the
   one fix for each. It also runs automatically before every scan, so a broken piece is named rather than
@@ -34,6 +34,9 @@ Plus four small skills for afterwards, so nothing is set in stone:
 - **"add employers to my job scan"** — adds or drops the organizations it watches and updates the job titles
   it matches. This is the one you'll use most: a target list grows all year.
 - **"where does jobscan keep my files"** — shows where everything is, and moves it if you want it elsewhere.
+- **"start my jobscan setup over"** — rebuilds the profile from a fresh interview when something foundational
+  was wrong, keeping every application you've already filed. It also covers removing JobScan entirely, and
+  says what stays behind when you do.
 
 It is built around **token-efficiency** (a compressed profile digest, per-tier résumé scaffolds you *edit*
 rather than regenerate, a single de-dup index instead of rescanning folders) and **verification discipline**
@@ -193,6 +196,21 @@ you. Worth doing every month or so.
 caches all live in the folder you chose during setup, not inside the plugin. A plugin update replaces only
 the plugin's own code, so there is nothing to back up first.
 
+### Starting over, or removing it
+
+**If something foundational went wrong early** — Claude misread your CV, you named the wrong field, you
+regret a location — say *"start my jobscan setup over"*. It rebuilds the profile from a fresh interview and
+**keeps every application you've already filed**, along with your digests and your employer list. You don't
+have to live with a bad answer given in the first ten minutes, and you don't have to delete anything by hand
+to escape it.
+
+**To remove the plugin**, send *"uninstall the jobscan plugin"*, or type `/plugin uninstall jobscan@jobscan`.
+**Your files stay.** Everything JobScan created for you lives in the folder you chose during setup, not
+inside the plugin, so uninstalling removes the code and leaves your profile, résumés, digests and application
+archive exactly where they are. If you want those gone too, say so — *"delete my jobscan data"* — and Claude
+will show you what it's about to remove and ask about your application archive separately, because that one
+is a record of what you actually did.
+
 ## What you actually need
 
 **Claude Code, and Microsoft Word or Apple Pages.** Nothing else has to be bought or learned. Résumés and
@@ -240,62 +258,24 @@ Three extras, each of which Claude offers during setup and each of which you can
   the scan uses web search every week instead: slower and more expensive, but it works. (On older Linux
   systems the version in the package manager is too old to run it; Claude checks and installs a current one.)
 - **A weekly schedule**, so the scan runs without you having to ask. Worth knowing before you count on it:
-  JobScan can't install a scheduler itself. If your Claude surface offers scheduled tasks, Claude registers
-  one for you; otherwise this means your operating system's own scheduler, which is genuinely technical, and
-  either way the machine has to be awake at the time. Asking for the scan yourself once a week is a perfectly
-  good substitute.
+  JobScan can't install a scheduler itself, and not every version of Claude offers one. If yours does, Claude
+  registers the weekly run for you; if it doesn't, the alternative is your operating system's own scheduler,
+  which is genuinely technical. Either way the machine has to be awake at the time, and asking for the scan
+  yourself once a week is a perfectly good substitute. **Claude will tell you which of those you're getting**
+  rather than reporting a schedule you don't have.
 
-## Already have skills named `job-search` / `job-applications`?
+  A scan that runs on Monday morning finishes while you're asleep, so it saves its results to a file instead
+  of a chat message you'd never see: one dated digest per scan, in your **Job Search Digests** folder. Say
+  *"show me last week's digest"* whenever you want it — that's the whole retrieval.
 
-Install it anyway — the two sets coexist, and JobScan is more useful *alongside* a routine you've already
-tuned than as a replacement for it. This is the likely case if you built your own version first, or if you
-built this plugin *from* a personal routine.
+## Already have skills of your own?
 
-**Your commands stay yours.** Claude Code gives plugin skills a `plugin:skill` namespace, so JobScan's arrive
-as `/jobscan:job-search`, `/jobscan:job-applications`, and `/jobscan:jobscan-onboarding`. Your personal
-`/job-search` and `/job-applications` keep their bare names and keep running your files. Nothing is renamed,
-overwritten, or shadowed, and uninstalling the plugin leaves your skills untouched.
+If you already write Claude Code skills — and especially if you have your own `job-search` or
+`job-applications` — JobScan is built to sit alongside them rather than replace them: plugin skills are
+namespaced, so your commands keep their bare names, and onboarding can build the data layer and stop.
 
-**The one real overlap is automatic triggering.** Claude picks a skill by reading the name and description of
-every skill available, so a vague *"find me some jobs this week"* now matches two entries. Settle it once:
-
-- **Be specific when you ask.** "Run my weekly job search" for yours; `/jobscan:job-search` for JobScan's.
-- **Or sharpen your own description.** Edit the `description` in `~/.claude/skills/job-search/SKILL.md` to
-  name what makes it yours — your boards, your field, your archive folder. The more specific description wins
-  the ambiguous asks.
-- **Or take yours off auto entirely.** Add `disable-model-invocation: true` to your skill's frontmatter and
-  drive it only by typing `/job-search`.
-
-Note that the `skillOverrides` setting is not a lever here — it doesn't apply to plugin skills. To silence
-JobScan's, disable the plugin from `/plugin`.
-
-Then pick how much of JobScan you actually want:
-
-**Take the data layer, keep your skills.** Onboarding's real output isn't the skills — it's a set of plain
-Markdown files any skill can read: your `profile.md`, the ~1-page `profile-core.md` digest, per-tier base
-résumés with `⟪TAILOR⟫` slots, a reverse-engineered cover-letter voice file, and an append-only
-`Applied Index.md`. Run `/jobscan:jobscan-onboarding` — it looks for skills of your own before it asks
-anything, and offers to build those files and stop rather than take over. Pointing your own skills at them is
-two lines at the top of your `SKILL.md`, which onboarding offers to add for you:
-
-> Read `~/.claude/jobscan-data/jobscan-config.md` first — it holds `data_path` and `archive_path`.
-> Then read `<data_path>/profile-core.md` for the candidate profile.
-
-That fixed config path is the whole integration contract. Your skills gain a compressed profile and a dedup
-index; JobScan's own skills sit unused unless you call them by name.
-
-**Or split the workflow between them.** The two halves are independent: `job-applications` needs a posting
-plus the profile files, nothing from `job-search`. So you can keep your finder and use
-`/jobscan:job-applications` to draft the packet, or scan with `/jobscan:job-search` and hand the digest to
-your own drafter.
-
-**Or borrow just the rules.** The parts worth stealing are in the reference files — the ATS and résumé-format
-rules, the writing playbook, the digest template, the two-gate live-verification discipline. Ask Claude to
-read JobScan's copy and fold what you want into your own skill's references; your skill stays the one that
-runs.
-
-**Or keep them completely apart.** Install into a scratch project to trial the plugin without touching a live
-routine, or fork it and rename the skills.
+> 🔧 [Using JobScan alongside your own job-search skills](docs/USING-WITH-YOUR-OWN-SKILLS.md) — namespacing,
+> automatic triggering, and the four ways to combine the two.
 
 ## Privacy
 
