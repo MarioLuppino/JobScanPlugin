@@ -19,10 +19,24 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath, locate,
+  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath, locate, display,
 } from './paths.mjs';
 
 const MIN_NODE = 18; // global fetch()
+
+/**
+ * `--full` prints absolute paths. The default prints the last two segments with
+ * a home-relative prefix, because this report is read aloud to someone who was
+ * told they would never see a file path, and `~/\u2026/jobscan-data/ats` is the
+ * folder they would recognise in Finder. The maintainer case — checking that a
+ * path resolved where it should — is what the flag is for, and `paths.mjs`
+ * still prints every path in full unconditionally.
+ *
+ * A path inside a command below stays absolute either way: those lines are run,
+ * not read, and a shortened path would not resolve.
+ */
+const FULL = process.argv.includes('--full');
+const d = (p) => (FULL ? p : display(p));
 
 const rows = [];
 let problems = 0;
@@ -82,9 +96,9 @@ if (major >= MIN_NODE) {
 const required = ['paths.mjs', 'fetch-ats.mjs', 'triage.mjs', 'dedup.mjs', 'discover-ats.mjs'];
 const missing = required.filter((f) => !existsSync(join(SCRIPTS_DIR, f)));
 if (missing.length === 0) {
-  report('ok', 'Scanner code', SCRIPTS_DIR);
+  report('ok', 'Scanner code', d(SCRIPTS_DIR));
 } else {
-  report('fix', 'Scanner code', `incomplete in ${SCRIPTS_DIR} — missing ${missing.join(', ')}`,
+  report('fix', 'Scanner code', `incomplete in ${d(SCRIPTS_DIR)} — missing ${missing.join(', ')}`,
     'Reinstall the plugin: "Update my JobScan plugin".');
 }
 
@@ -127,7 +141,7 @@ if (untouched) {
 
 // 3. Config ------------------------------------------------------------------
 if (!existsSync(CONFIG_PATH)) {
-  report('fix', 'Config file', `not found at ${CONFIG_PATH}`,
+  report('fix', 'Config file', `not found at ${d(CONFIG_PATH)}`,
     'Run jobscan-onboarding — nothing else here can resolve until this file exists.');
 } else {
   const text = readFileSync(CONFIG_PATH, 'utf8');
@@ -137,31 +151,31 @@ if (!existsSync(CONFIG_PATH)) {
     report('fix', 'Config file', `${unfilled.join(' and ')} still holds the template placeholder`,
       'Re-run jobscan-onboarding Step 3, or say "where does jobscan keep my files" to set the paths.');
   } else {
-    report('ok', 'Config file', CONFIG_PATH);
+    report('ok', 'Config file', d(CONFIG_PATH));
   }
 }
 
 // 4. Data directory ----------------------------------------------------------
 if (!existsSync(DATA_DIR)) {
-  report('fix', 'Data folder', `${DATA_DIR} does not exist`,
+  report('fix', 'Data folder', `${d(DATA_DIR)} does not exist`,
     'Run jobscan-onboarding, or say "move my jobscan files" if the folder was moved or renamed.');
 } else if (!writable(DATA_DIR)) {
-  report('fix', 'Data folder', `${DATA_DIR} is not writable`,
+  report('fix', 'Data folder', `${d(DATA_DIR)} is not writable`,
     'Check permissions on that folder, or pick a different location with "move my jobscan files".');
 } else {
-  report('ok', 'Data folder', DATA_DIR);
+  report('ok', 'Data folder', d(DATA_DIR));
 }
 
 const profile = join(DATA_DIR, 'profile-core.md');
-if (existsSync(profile)) report('ok', 'Profile digest', profile);
-else report('fix', 'Profile digest', `no profile-core.md in ${DATA_DIR}`,
+if (existsSync(profile)) report('ok', 'Profile digest', d(profile));
+else report('fix', 'Profile digest', `no profile-core.md in ${d(DATA_DIR)}`,
   'Run jobscan-onboarding — scoring has nothing to score against without it.');
 
 // 5. Scanner config ----------------------------------------------------------
 const examplePatterns = readJson(join(SCRIPTS_DIR, 'triage-config.example.json'))?.matchTitlePatterns ?? [];
 const { data: triage, legacy: triageLegacy } = readPersonal('triage-config.json');
 if (!triage) {
-  report('fix', 'Job titles', `no triage-config.json in ${ATS_DIR}`,
+  report('fix', 'Job titles', `no triage-config.json in ${d(ATS_DIR)}`,
     'Run jobscan-onboarding Step 6, or say "add an employer to my job scan" — without it the feeds are ' +
     'pulled and nothing matches.');
 } else if (!Array.isArray(triage.matchTitlePatterns) || triage.matchTitlePatterns.length === 0) {
@@ -177,7 +191,7 @@ if (!triage) {
 const { data: employersFile, legacy: employersLegacy } = readPersonal('employers.json');
 const employers = employersFile?.employers;
 if (!Array.isArray(employers) || employers.length === 0) {
-  report('fix', 'Employer list', `no employers registered in ${ATS_DIR}`,
+  report('fix', 'Employer list', `no employers registered in ${d(ATS_DIR)}`,
     'Say "add employers to my job scan". The benchmark figures in the docs come from a registry of two ' +
     'dozen; a scan with none falls back to web search entirely.');
 } else {
@@ -209,13 +223,13 @@ report('note', 'Seen-URL cache',
 
 // 6. Archive -----------------------------------------------------------------
 if (!existsSync(ARCHIVE_DIR)) {
-  report('fix', 'Archive folder', `${ARCHIVE_DIR} does not exist`,
+  report('fix', 'Archive folder', `${d(ARCHIVE_DIR)} does not exist`,
     'Run jobscan-onboarding Step 5, or say "move my jobscan files" if the folder was moved.');
 } else if (!writable(ARCHIVE_DIR)) {
-  report('fix', 'Archive folder', `${ARCHIVE_DIR} is not writable`,
+  report('fix', 'Archive folder', `${d(ARCHIVE_DIR)} is not writable`,
     'Nothing can be filed there. Check the folder\'s permissions, or move the archive somewhere else.');
 } else {
-  report('ok', 'Archive folder', ARCHIVE_DIR);
+  report('ok', 'Archive folder', d(ARCHIVE_DIR));
 }
 
 const index = archivePath('Applied Index.md', 'JOBSCAN_INDEX');
@@ -223,7 +237,7 @@ if (existsSync(index)) {
   const lines = readFileSync(index, 'utf8').split('\n').filter((l) => /^\s*\|\s*\d+/.test(l)).length;
   report('ok', 'Applied index', `${lines} application${lines === 1 ? '' : 's'} recorded`);
 } else {
-  report('fix', 'Applied index', `no Applied Index.md at ${index}`,
+  report('fix', 'Applied index', `no Applied Index.md at ${d(index)}`,
     'Duplicate screening reads this file, so without it old roles resurface every week. Run ' +
     'jobscan-onboarding Step 5 to create it. If you know you have one, this is a path problem, not a ' +
     'record-keeping problem — check archive_path in the config.');

@@ -52,6 +52,16 @@ archive's writability, `Applied Index.md`, and anything stranded in the plugin f
 — and prints one line per check with the fix. Most "the scanner found nothing" reports are one of these, not
 a quiet week.
 
+Paths in that report are shortened to a home-relative last-two-segments form (`~/…/jobscan-data/ats`),
+because the report is read aloud to someone who was promised they would never see a file path. Add `--full`
+when you are checking that a path resolved where you expected:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs" --full
+```
+
+`paths.mjs` is unaffected — it prints every path in full, always, and is the right tool for that question.
+
 ## Quick start
 
 ```bash
