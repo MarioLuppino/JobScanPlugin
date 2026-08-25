@@ -52,6 +52,9 @@ section backgrounds:
     --open / --open-soft        waiting, unclaimed, in review
     --blocked / --blocked-soft  blocked, refused, needs a decision
 
+A `done` chip belongs on a fact in **State of play** that the next agent needs in order to not redo it. It
+is not a way to keep a finished open item on the page: those get deleted, not ticked.
+
 Define every token on bare `:root`, then redefine the same names under
 `@media (prefers-color-scheme: dark)` guarded as `:root:not([data-theme="light"])`, and again under
 `:root[data-theme="dark"]`. Give `body` an explicit token background.
@@ -62,6 +65,19 @@ A serif for headings against a sans for text reads as a document rather than a d
 uses IBM Plex Serif, IBM Plex Sans and IBM Plex Mono from Google Fonts, which is the one external host a
 published artifact may load. Always give each face a real fallback stack. Body text caps around 68ch, the
 page around 60rem.
+
+## What a second pass looks like
+
+The page is republished to the same URL rather than replaced, so the layout has to survive shrinking. See
+**Continue one document** in `SKILL.md` for when that applies.
+
+- The eyebrow becomes `Session handoff · updated <D Month YYYY>`. The `<h1>` changes only if the mission has.
+- The state grid is re-read off the repository, not edited from memory: head commit, version and open PR all
+  move.
+- Finished items leave the `<ol>` entirely. A section whose last item went is deleted with it, headings and
+  all, rather than left standing with one apologetic line inside.
+- The 400-word budget is a budget for the whole page, so a pass that adds a section has to find the words
+  somewhere.
 
 ## Things that break the page
 
