@@ -19,5 +19,8 @@ plugin, which a `/plugin update` replaces.
 - firecrawl: {{connected | not-connected}}
 - split_quota: {{e.g. 5 domestic / 5 international, or none}}
 - fit_floor: {{e.g. 50}}
+- scan_budget: {{e.g. 45 minutes / 4 worker waves / 5 deep verifications — omit for the defaults}}
+- worker_concurrency: {{e.g. 5 — omit for the default}}
+- usajobs_api_key: {{free key from developer.usajobs.gov, plus the email it was registered with — omit if none}}
 
 <!-- Personal/config data — never commit this file. It is git-ignored by default. -->

@@ -22,6 +22,13 @@ While the sweep runs, collect the employer behind **every** posting that clears 
 ones worth applying to, and including ones rejected for salary, location or timing. The employer is still
 the right employer; the point is next month's opening, not this one.
 
+Collect **names**, not postings. An employer name is a string already present in a search result, so
+harvesting is free: it never justifies opening a page, and a posting opened to learn who posted it has cost
+more than the entry is worth. Dedupe the names as you go and stop at about 60 per run — beyond that the
+probe step below is doing more work than a first scan can use, and the ones you drop will surface again next
+week from a sweep that costs less. Give the harvest to a worker if the sweep is already running in workers:
+pulling employer names out of result lines is exactly tier-two work.
+
 Write them one per line as `Employer Name | sector` (blank lines and `#` comments ignored; a third field
 takes slugs you already know: `Acme Group | industry | acmejobs`), then:
 

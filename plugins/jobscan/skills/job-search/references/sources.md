@@ -9,8 +9,9 @@ The point is coverage across *kinds* of employer, not a fixed list.
 
 ## Source categories (fill each with your field's specifics)
 
-1. **Federal** — the national government job portal (in the US, USAJOBS; use its API where possible for
-   reliable structured search). Filter to the pay-grade floor from onboarding.
+1. **Federal** — the national government job portal (in the US, USAJOBS, whose public site is
+   JavaScript-only; use its free JSON Search API, see `references/portals.md`). Filter to the pay-grade
+   floor from onboarding.
 2. **State / provincial agencies** — often on NEOGOV / governmentjobs.com-style portals. These need JS
    rendering (Firecrawl or a browser) to read.
 3. **University / research institutions** — HR boards, department pages, HigherEdJobs/Chronicle-style
@@ -26,10 +27,22 @@ For each category, onboarding records: the boards/URLs, any API pattern, and the
 
 ## Search-term coverage (standing rule)
 
-Run the **full core keyword set** against every site that supports keyword search — not a different subset per
-site. Some terms are **asymmetric**: searching one does not surface postings titled with the other, so run
-each as its own query. Onboarding records the user's asymmetric keyword pairs; treat each member as a separate
-required query.
+The rule is about not *dropping* terms, not about running every term everywhere. Some terms are
+**asymmetric**: searching one does not surface postings titled with the other, so each member of an
+asymmetric pair is its own required query and neither may be skipped as a synonym. Onboarding records the
+user's pairs.
+
+It is not a licence for a full cross-product. Keywords times sites grows fast — eight terms across seven
+categories is fifty-six searches before a single posting is read, and that is where a sweep silently becomes
+an hour. So:
+
+- Run the **full core set** against each category's one or two **primary** boards, the ones that actually
+  index that category. Run the **asymmetric pairs plus the two highest-yield terms** against the rest.
+- Cap the sweep at roughly **25 queries per scan**, ten results each, page one only. Depth comes from a more
+  specific query, not from a second page or a fourteenth synonym.
+- Dispatch them as a wave of workers, one source branch per worker, not as a list to walk. See
+  `worker-brief.md`.
+- When the cap binds, say which terms did not run, and rotate them to the front next week.
 
 ## Split quota (standing rule, if set)
 
@@ -43,8 +56,12 @@ fits fall short after exhausting sources, report fewer and say so; never pad wit
 - Employer-direct: `site:<employer-careers-domain> "<keyword>"`
 - Federal API: query by keyword + grade floor + location; parse the JSON.
 
-Cross-check every aggregator hit against the **employer's own careers page** for the canonical live apply
-link before including it in the digest.
+Resolve an aggregator hit to the **employer's own posting** at the point it is verified in depth, not on the
+way into the digest. Every resolution is a fetch, and a digest carries about ten rows of which only the top
+few are retrieved at all, so cross-checking all of them buys canonical links for listings nobody opened and
+contradicts the depth split. A `NOT-CHECKED` row keeps the URL the feed or search result gave it, which is
+exactly what its tag says it is. A row promoted to `VERIFIED-LIVE` gets the canonical employer URL as part
+of the one load that verifies it.
 
 ## ATS feeds — run these BEFORE any keyword search
 
@@ -70,12 +87,16 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" \
 | Workday | `POST {host}/wday/cxs/{tenant}/{site}/jobs` — `searchText` filters server-side |
 | Paylocity | no API; postings are embedded in the board HTML as a `"Jobs":[...]` array |
 
-**Choosing a tool by portal type** matters more than it looks — the wrong one produces a false "dry" result:
+**Choosing a tool by portal type** matters more than it looks — the wrong one produces a false "dry" result,
+and the wrong first attempt is where a scan's wall clock goes. The routing table lives in one place,
+`references/portals.md`: which portals are JavaScript-driven, what to use on each, USAJOBS' free JSON API,
+and the one-retry-then-down-the-ladder rule. It is not repeated here, and it is not copied into a user's
+generated sources file, because the same rule in two files is a rule that will drift.
 
-- **Standard CMS sites** (small nonprofits, agencies hosting their own listings): site mapping works well.
-- **Workday**: mapping returns nothing useful; use the CXS endpoint above.
-- **Numeric-ID job boards** (many government portals): mapping returns opaque IDs including postings dead
-  for years — never treat a mapped URL there as a live listing.
+Three things that belong to searching rather than to routing:
+
+- **Numeric-ID job boards** (many government portals): a mapped URL there can be a posting dead for years.
+  Never treat one as a live listing without loading it.
 - **Portals that ignore URL keyword parameters**: some public-sector and EU research portals return the
   full unfiltered result set no matter what you put in the query string. They must be driven through their
   real search box, and reporting them as "nothing found" after a URL-parameter probe is a tooling failure.

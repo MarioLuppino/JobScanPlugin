@@ -53,10 +53,14 @@ not the setup, and they block onboarding. Name that one and offer the fix.
 The script can see files. It cannot see what is loaded in *this* session. Check these yourself, and report
 them in the same list.
 
-1. **Firecrawl — call it, don't look for it.** A `firecrawl: connected` line in the config records what
-   onboarding *did*, not what this session *has*. MCP servers load at session start, so a server connected
-   during onboarding is not available until Claude Code restarts. Make one real, cheap call —
-   `firecrawl_scrape` against any stable public page — and report what happened:
+1. **Firecrawl — check the session, not the config.** A `firecrawl: connected` line in the config records
+   what onboarding *did*, not what this session *has*. MCP servers load at session start, so a server
+   connected during onboarding is not available until Claude Code restarts. Whether the tools are loaded in
+   this session is free to determine, so determine it that way. Only spend a call when presence alone cannot
+   answer the question — the tools are there but may be unauthenticated or out of credit — and inside a
+   scan, do not spend an extra one at all: **the run's first real scrape is the health check**, and it was
+   going to happen anyway. A dedicated probe scrape on every scan is a metered credit bought to learn
+   something the next call reveals for nothing. Report what happened:
    - answers → `ok`
    - tools not present but the config says connected → **restart Claude Code**, that is the whole fix
    - not configured at all → offer the keyless server (`jobscan-onboarding` Step 7 has the one command),
@@ -67,7 +71,12 @@ them in the same list.
    that before a packet is due, not during one.
 3. **Browser tools.** The fallback for JS-heavy portals when Firecrawl is absent. If neither exists, dynamic
    portals cannot be verified at all, and Gate 2 will refuse to draft for them.
-4. **`${CLAUDE_PLUGIN_ROOT}`.** If the variable is empty, say which absolute path you used instead, so a
+4. **A way to dispatch workers.** `job-search` runs as a coordinator over waves of cheap-tier workers, and
+   a surface without a subagent tool falls back to doing every retrieval in one thread — which still works
+   and takes several times as long. That is the most expensive silent downgrade in the system, because
+   nothing about the output looks different. Check whether the surface has one, and whether it takes a model
+   argument; say which, and put it in the Process note if it is missing.
+5. **`${CLAUDE_PLUGIN_ROOT}`.** If the variable is empty, say which absolute path you used instead, so a
    later failure isn't mistaken for a missing pipeline.
 
 ### Firecrawl matters more for some fields than others
@@ -97,8 +106,8 @@ If everything passes, say so in one line and stop. A clean check should not prod
 scan:
 
 - **Fatal** (no config, no profile) → stop and offer to run `jobscan-onboarding`. Don't scan blind.
-- **Degrading** (no employer registry, Node missing, Firecrawl absent, feeds never probed) → continue on the
-  fallback path, and **record one line in the digest's Process note** saying what was unavailable and what
+- **Degrading** (no employer registry, Node missing, Firecrawl absent, no subagent tool, feeds never probed)
+  → continue on the fallback path, and **record one line in the digest's Process note** saying what was unavailable and what
   that cost. Never let a downgrade pass unmentioned; that is the failure mode this whole skill exists to
   end.
 - **Thin** (few employers, empty seen-cache, no recorded outcomes) → don't interrupt the scan. Mention it

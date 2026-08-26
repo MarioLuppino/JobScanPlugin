@@ -16,8 +16,9 @@ will ask your permission first and [those prompts look technical](#about-those-p
 Two cooperating skills plus onboarding:
 
 - **`job-search`** — the *finder*. Searches boards, de-dups, scores fit, ranks a top ~10, checks the best few
-  in full, writes a dated digest, and stops. Your first scan does one thing more: it keeps the employers it
-  found, so every later scan reads their job boards directly instead of searching for them again.
+  in full, writes a dated digest and a short handoff you can hand to a fresh chat, and stops. Your first scan
+  does one thing more: it keeps the employers it found, so every later scan reads their job boards directly
+  instead of searching for them again.
 - **`job-applications`** — the *drafter*. Maps an employer's competencies to your evidence and produces a
   tailored résumé + cover letter (`.docx`) and interview prep.
 - **`jobscan-onboarding`** — a one-time setup that starts from your CV, asks only what the CV can't answer,
@@ -138,6 +139,12 @@ twice for the same postings.
 **Expect a short first list.** The scanner is only as good as the employer list behind it, and yours starts
 nearly empty. Day one is a handful of employers and a handful of matches. Say *"add employers to my job scan"* 
 whenever another one occurs to you — that single list is what makes the difference, and it grows all year.
+
+**It ends by handing you one line to paste.** A finished scan writes two files: the digest, and a short
+**handoff** listing the week's jobs best-first with a note on how to read them. Then it gives you a sentence
+to paste into a **new chat** to start your résumés and cover letters. That is not busywork — by the time a
+scan finishes, that chat is carrying everything it read, and drafting in it costs you the whole scan a second
+time. The handoff is the part that travels.
 
 **Nothing is ever submitted for you.** The scan stops at a digest; drafting happens when you pick a job, and
 you send the application yourself.
