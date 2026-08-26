@@ -53,10 +53,14 @@ not the setup, and they block onboarding. Name that one and offer the fix.
 The script can see files. It cannot see what is loaded in *this* session. Check these yourself, and report
 them in the same list.
 
-1. **Firecrawl — call it, don't look for it.** A `firecrawl: connected` line in the config records what
-   onboarding *did*, not what this session *has*. MCP servers load at session start, so a server connected
-   during onboarding is not available until Claude Code restarts. Make one real, cheap call —
-   `firecrawl_scrape` against any stable public page — and report what happened:
+1. **Firecrawl — check the session, not the config.** A `firecrawl: connected` line in the config records
+   what onboarding *did*, not what this session *has*. MCP servers load at session start, so a server
+   connected during onboarding is not available until Claude Code restarts. Whether the tools are loaded in
+   this session is free to determine, so determine it that way. Only spend a call when presence alone cannot
+   answer the question — the tools are there but may be unauthenticated or out of credit — and inside a
+   scan, do not spend an extra one at all: **the run's first real scrape is the health check**, and it was
+   going to happen anyway. A dedicated probe scrape on every scan is a metered credit bought to learn
+   something the next call reveals for nothing. Report what happened:
    - answers → `ok`
    - tools not present but the config says connected → **restart Claude Code**, that is the whole fix
    - not configured at all → offer the keyless server (`jobscan-onboarding` Step 7 has the one command),

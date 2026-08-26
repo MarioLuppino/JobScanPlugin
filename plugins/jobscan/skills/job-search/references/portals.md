@@ -1,6 +1,11 @@
-# Portals and the tool ladder — pick the right tool on the first attempt
+# Reading the web cheaply — which tool, and how much of the page
 
-Read this before the first web read of a scan, and whenever a portal refuses a tool. It exists because the
+Read this before the first web read of a scan, and whenever a portal refuses a tool. Two separate questions
+live here and both are load-bearing: **which tool opens a page** (the ladder and the portal table), and
+**how much of that page reaches context** (the size rules at the end). Getting the first one wrong wastes a
+round trip; getting the second one wrong is where a scan's token bill actually comes from.
+
+The tool half exists because the
 expensive failure in a scan is not a hard portal, it is a *wasted first attempt*: a plain fetch against a
 JavaScript portal returns an empty shell, costs a round trip, and teaches nothing, and the agent then pays
 again for the tool it should have used first. Two or three of those per source is where a scan's wall clock
@@ -85,3 +90,50 @@ the whole federal branch into one JSON request.
   believes it.
 - **Workday**: `HTTP_422` means a wrong tenant/site path; `HTTP_500` means the path is right and the tenant
   is erroring.
+
+## How much of a page to pull
+
+The call is not the expensive part. **The page is.** A tool call to a job board costs a few hundred tokens;
+the posting it returns costs several thousand, and a scan reads dozens. So the size rules matter more than
+the tool choice, and they are the ones with no natural floor — nothing stops a page getting bigger.
+
+- **Ask for the content, not the document.** Every scrape uses main-content extraction (`onlyMainContent` on
+  Firecrawl) and markdown output. Navigation, cookie banners, footers, "related jobs" rails and the
+  employer's site chrome are pure cost: they are the majority of most job pages by volume and they carry
+  nothing a digest or a résumé ever uses.
+- **Distil on arrival, then drop the page.** A retrieved posting becomes the extraction schema and nothing
+  else. Do not summarise it in prose first, do not quote it back, do not keep it "in case". Boilerplate that
+  never survives distillation: benefits, EEO and legal text, "about our company", application instructions,
+  accessibility statements, salary-history-ban notices.
+- **One load per posting, ever.** The load that confirms a posting is open is the same load that yields the
+  extraction. A run that verifies first and fetches again for detail has paid twice for one page. This
+  applies at the pre-draft gate too, where re-confirmation and full deconstruction are one read.
+- **Cap search results, and do not paginate.** Ten results per query in a sweep, page one only. Depth comes
+  from a more specific query, never from a second page: page two of a job-board search is where the noise
+  lives, and it costs the same as page one.
+- **Prefer the search result to the page.** A search result line usually carries title, employer, location
+  and date. If that is enough to fail a gate, the posting is never worth opening. Only a gate that needs the
+  body of the posting justifies a scrape.
+- **Never follow a link out of a posting.** Not the employer's other openings, not the "similar roles" list,
+  not the department page. Anything found that way belongs to the employer registry, as a name, not as a
+  page to read now.
+- **Never read a local file with a metered tool.** Paid scrape and OCR are for the web. `local-tooling.md`
+  in `jobscan-onboarding/references/` has the free local equivalents and their install commands.
+
+## Three tiers of labour, cheapest first
+
+Same idea as the three cost tiers for postings, applied to the work itself. Before doing anything, ask which
+tier it belongs to, and never let work drift upward:
+
+1. **A script does it for free.** Filtering, sorting, deduping, counting, field projection, JSON reshaping,
+   date maths. A model reading a thousand rows to pick fifty is the most expensive way to run `grep`. The
+   pipeline in `scripts/` already covers title triage, salary gates, age cutoffs and dedup; anything else
+   mechanical is a `node -e` one-liner, not a read.
+2. **A worker does it cheaply.** Anything that needs a model but not the whole picture: retrieving pages,
+   extracting fields, classifying an ambiguous title against a literal pattern list, harvesting employer
+   names out of sweep results.
+3. **The coordinator does it, because nothing else can.** Only what compares listings to each other or
+   writes the output: dedup decisions across sources, fit scoring, ranking, the digest, the handoff.
+
+The rule that follows: **never pull a file into context to do something a command could do to it.**
+`candidates.json` is the standing example — see the projection rule in `SKILL.md`.

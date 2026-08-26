@@ -68,7 +68,7 @@ Two locations you configure at onboarding:
   plugin's shipped default.
 - `<jobscan-data>/ats/*.json` — scanner registry, title config and caches.
 
-## 3. The eight ideas that make it efficient
+## 3. The ten ideas that make it efficient
 
 1. **Derived files + selective propagation.** The digest and base résumés are *derived* from `profile.md`.
    Reading the ~1-page digest instead of the full profile cuts the most frequent read ~4×. The refresh
@@ -116,7 +116,18 @@ Two locations you configure at onboarding:
    exists, finish both files, name the unsearched branch in the Process note, and rotate it to the front
    next week. The one thing never traded away for budget is verification depth on the listings the user
    will act on.
-8. **The wrong first tool is where the wall clock goes.** A plain fetch against a JavaScript portal returns
+8. **Three tiers of labour, and nothing drifts upward.** A script does anything mechanical for free —
+   filtering, counting, deduping, projecting fields, date maths. A worker does anything that needs a model
+   but not the whole picture. The coordinator does only what compares listings to each other. The rule that
+   falls out of it is *never pull a file into context to do something a command could do to it*, and the
+   standing example is `candidates.json`: the pipeline exists to filter hundreds of postings without a
+   model, so reading its output back undoes the entire saving.
+9. **The page, not the call, is the cost.** A tool call to a job board is a few hundred tokens; the page it
+   returns is several thousand, and a scan reads dozens. So the size rules carry more weight than the tool
+   choice and are the ones with no natural floor: main-content extraction on every scrape, distil-then-drop
+   with boilerplate named explicitly, one load per posting ever (the load that verifies is the load that
+   extracts), ten results per query and no second page, and no following links out of a posting.
+10. **The wrong first tool is where the wall clock goes.** A plain fetch against a JavaScript portal returns
    an empty shell, costs a round trip and teaches nothing already known. So the tool ladder is fixed —
    public JSON feed, then Firecrawl as the *default* for every web read, then plain fetch only for a URL
    known to be server-rendered, then a browser as the last rung — and the portals that are known to be

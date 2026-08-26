@@ -27,6 +27,10 @@ Concretely, a brief that works on a small model:
 
 ## Which tier runs what
 
+Before any of this, check whether the work needs a model at all. Filtering, counting, deduping, projecting
+fields out of `candidates.json`, date arithmetic: a `node -e` one-liner does those for nothing, and a worker
+spawned to do them is a worker's overhead bought to run `grep`.
+
 | Work | Tier | Why |
 |---|---|---|
 | Retrieval, extraction, open/closed confirmation | **Cheapest available** | Mechanical: fetch, read fields off the page, fill a schema. No comparison across postings. |
@@ -56,9 +60,12 @@ You are verifying job postings. Do only this. Do not search for other jobs.
 For each URL below: retrieve the posting and return one JSON object per URL.
 
 Tool order (do not deviate):
-  1. firecrawl_scrape on the URL.
+  1. firecrawl_scrape on the URL, with onlyMainContent enabled and markdown output.
   2. If that fails, ONE more attempt with a different tool.
   3. If that fails, return the object with "status": "UNVERIFIED" and "note" saying which tool failed.
+Load each URL ONCE. The same load confirms the posting is open and supplies every field below.
+Do not follow any link out of the posting. Do not open the employer's other listings.
+Ignore benefits, EEO and legal text, "about our company", and application instructions. None of it is used.
 Never use a plain fetch on: usajobs.gov, governmentjobs.com, NEOGOV, calcareers.ca.gov, myworkdayjobs.com,
 icims.com, taleo.net. They return an empty page. Never open a browser session.
 Two attempts per URL, maximum. Never retry a failed command unchanged.
@@ -100,16 +107,18 @@ Queries: run EACH of these as its own separate search, and report each one's res
   - "<term 2>"
 Location filter: <literal>            Posted after: <YYYY-MM-DD or "no cutoff">
 
-Use firecrawl_search. If the site ignores URL keyword parameters, drive its own search box; do not report
-the source as empty after a URL-parameter probe. Never open a browser session. Stop after <N> tool calls
-and return what you have, with "truncated": true.
+Use firecrawl_search. Ten results per query, page one only — never request a second page. If the site
+ignores URL keyword parameters, drive its own search box; do not report the source as empty after a
+URL-parameter probe. Never open a browser session. Stop after <N> tool calls and return what you have, with
+"truncated": true.
 
 Return ONLY a JSON object:
 {"source": "...", "truncated": false, "queries": [{"q": "...", "count": 0}],
  "rows": [{"title": "...", "employer": "...", "location": "...", "salary": "... or null",
            "posted": "YYYY-MM-DD or unstated", "url": "..."}]}
 
-Do not retrieve the postings. Do not score anything. A row is the search result's own summary line.
+Do not retrieve the postings — a row is the search result's own summary line, and opening a page to fill one
+in is the single most expensive mistake available to you here. Do not score anything.
 ```
 
 ## What the coordinator does with the answers
