@@ -13,11 +13,13 @@ notify: true                   # only if this surface delivers something the use
 
 ## Notes
 - The prompt triggers the `job-search` skill, which resolves paths from
-  `~/.claude/jobscan-data/jobscan-config.md`, runs scan → verify → score → rank, writes the dated digest, and
+  `~/.claude/jobscan-data/jobscan-config.md`, runs scan → verify → score → rank, writes the dated digest and handoff, and
   **stops** (no drafting/submitting without you).
-- **The digest file is the deliverable, not the notification.** Every run writes
-  `<archive>/Job Search Digests/<YYYY-MM-DD> digest.md`, and that file is the only output that survives a run
-  nobody was present for. `notify` is a pointer to it and may reach nobody at all, depending on the surface.
+- **The files are the deliverable, not the notification.** Every run writes two of them into
+  `<archive>/Job Search Digests/`: `<YYYY-MM-DD> digest.md` and `<YYYY-MM-DD> handoff.md`, the second being
+  the ranked list plus the line to paste into a new chat to start packets. They are the only output that
+  survives a run nobody was present for. `notify` is a pointer to them and may reach nobody at all,
+  depending on the surface.
 - **Tell the user two things when you register this:** which folder the weekly file lands in, in the words
   they'd see in Finder or File Explorer, and that *"show me last week's digest"* brings it back. Otherwise a
   quiet week and a scan that never ran are indistinguishable.

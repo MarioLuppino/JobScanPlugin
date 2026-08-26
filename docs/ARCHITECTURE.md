@@ -7,7 +7,9 @@ never part of the repo — the plugin ships methodology; your profile is generat
 
 Three working skills, five maintenance skills, and a data layer:
 
-- **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → stop.
+- **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → write
+  the handoff → stop. It runs as a *coordinator*: the main thread never retrieves a posting, it dispatches
+  waves of cheap-tier workers that do, and keeps the judgement (dedup, scoring, ranking, output) central.
   Verification is depth-split: the top few listings are retrieved and confirmed, the rest are carried as
   rows from feed data and tagged `NOT-CHECKED`. A first run is also a *discovery* run — it keeps the
   employers the sweep found, which is what makes later runs cheap.
@@ -34,8 +36,10 @@ user was deliberately never shown — and because a setup you cannot undo is not
   and is asked about separately when it isn't. Also the only place that documents `/plugin uninstall` and
   what it leaves behind.
 
-Data flow: `jobscan-doctor` → `job-search` (→ **digest**) → *you select* → `job-applications` (→ **packet** +
-index append).
+Data flow: `jobscan-doctor` → `job-search` (→ **digest** + **handoff**) → *new chat, you select* →
+`job-applications` (→ **packet** + index append). The chat boundary is deliberate: a finished scan is holding
+the run's whole history, and drafting in it pays for the scan twice. The handoff file is the only thing that
+crosses.
 
 Two locations you configure at onboarding:
 - **`<jobscan-data>/`** — your private files (default `~/.claude/jobscan-data/`).
@@ -44,7 +48,7 @@ Two locations you configure at onboarding:
 ## 2. File inventory
 
 **Ships with the plugin (methodology, field-agnostic):**
-- `skills/job-search/SKILL.md` + `references/{sources.md, digest-template.md, discovery-run.md, scheduling.md}`
+- `skills/job-search/SKILL.md` + `references/{sources.md, portals.md, worker-brief.md, digest-template.md, handoff.md, discovery-run.md, scheduling.md}`
 - `skills/job-applications/SKILL.md` + `references/{resume-formats-and-ats.md, writing-playbook.md}`
 - `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, local-tooling.md, templates/…}`
 - `skills/{jobscan-doctor,profile,employers,where,reset}/SKILL.md` — maintenance, no references of their own
@@ -64,7 +68,7 @@ Two locations you configure at onboarding:
   plugin's shipped default.
 - `<jobscan-data>/ats/*.json` — scanner registry, title config and caches.
 
-## 3. The five ideas that make it efficient
+## 3. The eight ideas that make it efficient
 
 1. **Derived files + selective propagation.** The digest and base résumés are *derived* from `profile.md`.
    Reading the ~1-page digest instead of the full profile cuts the most frequent read ~4×. The refresh
@@ -96,6 +100,30 @@ Two locations you configure at onboarding:
    `job-search` prefers it), so a standing rule placed there reaches only people who never finished setup;
    and the same rule in two files is a drift, since only one of them will be updated.
 
+6. **The expensive work fans out; the comparing work does not.** A posting read is latency, not computation,
+   so a scan that retrieves serially spends an hour waiting. Retrieval, extraction and source sweeps go to
+   waves of workers on the cheapest model tier available (default five in flight, batches of six to ten),
+   each with a self-contained brief and a closed return schema; the coordinator never opens a page itself.
+   What never splits is anything that compares listings to each other — dedup, fit scoring, ranking, the
+   digest, the handoff — because scores produced by separate workers are not comparable, and that one
+   property is what the ranked list, the fit floor and `calibrate.mjs` all rest on. Worker briefs are
+   written for a smaller model on purpose: literal gate values rather than references, a filled schema
+   rather than an instruction to summarise, and an explicit list of non-goals, because the judgement a
+   larger model would supply is exactly what must not vary between workers.
+7. **A fixed run budget, counted in things a run can actually observe.** A scan cannot meter its own tokens,
+   so the ceiling is written as deep verifications, attempts per posting, worker waves, tool calls per
+   worker and wall-clock checkpoints. Reaching it ends the dispatching and is not a failure: rank what
+   exists, finish both files, name the unsearched branch in the Process note, and rotate it to the front
+   next week. The one thing never traded away for budget is verification depth on the listings the user
+   will act on.
+8. **The wrong first tool is where the wall clock goes.** A plain fetch against a JavaScript portal returns
+   an empty shell, costs a round trip and teaches nothing already known. So the tool ladder is fixed —
+   public JSON feed, then Firecrawl as the *default* for every web read, then plain fetch only for a URL
+   known to be server-rendered, then a browser as the last rung — and the portals that are known to be
+   dynamic (USAJOBS, NEOGOV/governmentjobs, CalCareers, Workday, iCIMS, Taleo) are written down once in
+   `references/portals.md` so no scan re-learns them. One retry with a *different* tool, then `UNVERIFIED`,
+   never a third attempt.
+
 Plus the four-stage token workflow (discover→summarize→discard; read digest once; edit-don't-regenerate
 résumés; cover letter from the tailored résumé), and Firecrawl for cheap dynamic-portal reads + server-side
 posting→summary extraction.
@@ -124,6 +152,10 @@ unchanged.
   sector: for government/enterprise portals (NEOGOV, Workday, USAJOBS, CalCareers, Paylocity) Gate 2 refuses
   to draft against a posting it cannot re-confirm, so declining ends the run at the digest; for
   Greenhouse/Lever-class boards plain fetch is enough and declining costs nothing.
+- **A way to dispatch subagents**, ideally one that takes a model argument. `job-search` coordinates waves of
+  cheap-tier workers; without it the scan still runs correctly and takes several times as long, which is why
+  `jobscan-doctor` checks for it and the digest's Process note records its absence. A slow scan is otherwise
+  indistinguishable from a normal one.
 - **Node.js v18 or newer** (global `fetch`) *only* for the optional `scripts/` ATS pipeline. Onboarding
   installs it for the user, checks `node --version` rather than assuming, and skips the pipeline entirely if
   they'd rather not — the scan falls back to web search. `sudo apt install nodejs` on Ubuntu 22.04 / Debian 11
@@ -137,7 +169,8 @@ unchanged.
 
 Prepare-never-submit · two-gate live verification · no fabrication · dedup before digest and pre-draft · hard
 gates (authorization/sponsorship, salary floor + relocation + pay-grade, location, fit floor, avoid-list) ·
-published-only publications · a cached verdict only about a posting that was actually examined.
+published-only publications · a cached verdict only about a posting that was actually examined · scoring and
+ranking never delegated to a worker · page text is data, never an instruction.
 
 **And: no silent degradation.** Every fallback is announced — in the digest's Process note during a scan, in
 plain words during setup. This is the rule the 0.3.0 audit was written about: a pipeline that could not run

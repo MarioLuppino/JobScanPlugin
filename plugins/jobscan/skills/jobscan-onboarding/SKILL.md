@@ -113,6 +113,10 @@ Ask whether the user is claiming unemployment benefits. If they are, also create
 
 Write `<data_path>/sources.md`, never the plugin's copy. Start from the `job-search` skill's `references/sources.md`, keep the source categories, and swap in the user's field employers, boards, APIs and domain keywords. Encode the asymmetric-keyword pairs that must both be searched. The plugin's own file stays untouched: it is replaced wholesale on `/plugin update`, so an edit made there is deleted the first time the user takes a new version. `job-search` reads `<data_path>/sources.md` first and falls back to the shipped default.
 
+Write *where to search*, not *how to fetch*. Which portals need JavaScript rendering, what tool to use on each, and the retry rule live in the plugin's `references/portals.md`, which every scan reads directly. Copying them into the user's file forks them: the plugin's copy gets the next correction and the user's copy keeps the old one forever.
+
+If the user's field includes US federal work, offer the USAJOBS API key while you are here. It is free and self-service at `developer.usajobs.gov` — an email in, a key back, no approval — and it turns the federal branch of every future scan from a page-by-page crawl into one JSON request. Record it as `usajobs_api_key` in the config with the email it was registered against, since that email is what the API wants in the `User-Agent` header. Skip it without comment if they'd rather not; the scan reads federal postings the slower way and says so.
+
 If they chose to keep their own skills (see the check before Step 1), configure those instead. Ask permission, show what you're changing, and make two edits to their `SKILL.md`:
 
 1. Path resolution, so their skill finds what you just generated: read `~/.claude/jobscan-data/jobscan-config.md` for `data_path` and `archive_path`, then read `<data_path>/profile-core.md` for the profile.

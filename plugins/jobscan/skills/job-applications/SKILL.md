@@ -45,6 +45,19 @@ verbatim; only rewrite the professional summary, selected bullets, skills orderi
 Write the cover letter from the tailored résumé + summary; reload the profile only if a fact is missing. This
 never overrides the fit assessment, competency mapping, or honest gap-naming below — those are quality.
 
+## Starting from a scan's handoff
+
+A weekly scan ends by writing `<archive>/Job Search Digests/<YYYY-MM-DD> handoff.md` and telling the user to
+open a **new chat** and point at it. That is the normal way this skill is entered, and the reason for the new
+chat is cost: the scan's own chat is holding thousands of postings by the time it finishes, and drafting
+there pays for the whole scan again.
+
+So when a session opens with a handoff path: read that file, and the digest it names, and nothing else from
+the scan. Give the user the ranked list as the handoff has it, ask which ones they want, and go. The handoff
+is a summary of a run nobody is going to re-execute — every posting in it still goes through the pre-draft
+gate below, because a listing verified on Monday can be closed by Thursday, and a `NOT-CHECKED` row was never
+confirmed open in the first place.
+
 ## The core workflow
 
 1. **Deconstruct the posting.** Identify the 5–8 core competencies the employer is really hiring for, a rough

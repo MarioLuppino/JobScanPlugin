@@ -1,7 +1,8 @@
 # Weekly digest — output format
 
 Write to `<archive>/Job Search Digests/<YYYY-MM-DD> digest.md`. Two parts: a ranked table, then a per-job
-block. Always include the apply link inline in the chat summary too.
+block. The findings are delivered by the handoff file written alongside it (`references/handoff.md`), never
+by pasting them back into the chat the scan ran in.
 
 The table carries the whole ranked list; the per-job blocks carry only the listings verified in depth. A row
 and a block are different claims — that difference is the point of the format.
@@ -13,8 +14,9 @@ and a block are different claims — that difference is the point of the format.
 
 Scanned: <categories/sites covered>. Verification: <tooling used; note any fallback>. Fits at or above the
 fit floor: <count>, of which <count> verified live this run.
-Process: <fallbacks, skipped branches, employers discovered/confirmed — anything that made this run
-differ from a clean one>.
+Process: <fallbacks, skipped branches, worker branches that failed to return, whether the run budget
+closed the scan and where it stopped, employers discovered/confirmed — anything that made this run differ
+from a clean one>.
 ```
 
 ## Ranked table
@@ -34,8 +36,8 @@ the same thing:
 - `NOT-CHECKED` — deliberately not retrieved. Everything in the row is as the feed or the search result
   reported it, and the fit is a prediction, written with a leading `~`.
 
-A `~` score is provisional and must stay marked as one everywhere it appears, including the chat summary.
-It still obeys the fit floor: a listing whose provisional score is below the floor does not go in the table
+A `~` score is provisional and must stay marked as one everywhere it appears, the handoff included. It
+still obeys the fit floor: a listing whose provisional score is below the floor does not go in the table
 at all.
 
 ## Per-job block (one per listing that was retrieved)

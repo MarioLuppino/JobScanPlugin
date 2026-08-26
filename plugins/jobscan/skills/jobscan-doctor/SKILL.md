@@ -67,7 +67,12 @@ them in the same list.
    that before a packet is due, not during one.
 3. **Browser tools.** The fallback for JS-heavy portals when Firecrawl is absent. If neither exists, dynamic
    portals cannot be verified at all, and Gate 2 will refuse to draft for them.
-4. **`${CLAUDE_PLUGIN_ROOT}`.** If the variable is empty, say which absolute path you used instead, so a
+4. **A way to dispatch workers.** `job-search` runs as a coordinator over waves of cheap-tier workers, and
+   a surface without a subagent tool falls back to doing every retrieval in one thread — which still works
+   and takes several times as long. That is the most expensive silent downgrade in the system, because
+   nothing about the output looks different. Check whether the surface has one, and whether it takes a model
+   argument; say which, and put it in the Process note if it is missing.
+5. **`${CLAUDE_PLUGIN_ROOT}`.** If the variable is empty, say which absolute path you used instead, so a
    later failure isn't mistaken for a missing pipeline.
 
 ### Firecrawl matters more for some fields than others
@@ -97,8 +102,8 @@ If everything passes, say so in one line and stop. A clean check should not prod
 scan:
 
 - **Fatal** (no config, no profile) → stop and offer to run `jobscan-onboarding`. Don't scan blind.
-- **Degrading** (no employer registry, Node missing, Firecrawl absent, feeds never probed) → continue on the
-  fallback path, and **record one line in the digest's Process note** saying what was unavailable and what
+- **Degrading** (no employer registry, Node missing, Firecrawl absent, no subagent tool, feeds never probed)
+  → continue on the fallback path, and **record one line in the digest's Process note** saying what was unavailable and what
   that cost. Never let a downgrade pass unmentioned; that is the failure mode this whole skill exists to
   end.
 - **Thin** (few employers, empty seen-cache, no recorded outcomes) → don't interrupt the scan. Mention it
