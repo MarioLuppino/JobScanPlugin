@@ -2,9 +2,8 @@
 name: job-search
 description: >-
   Weekly job scanner. Searches the web for ACTIVE job listings the user is a strong fit for, verifies each is
-  live, scores it against their profile, ranks the top ~10 — verifying the top few in depth and listing the
-  rest — and writes a dated digest with direct apply links, then hands selected jobs to the job-applications
-  skill. On a first run it also keeps the employers it found, so later scans pull their boards for free. Use whenever the user wants to find jobs, run a
+  live, scores it against their profile, ranks the top ~10, and writes a dated digest with direct apply links
+  — then hands selected jobs to the job-applications skill. Use whenever the user wants to find jobs, run a
   job search, "scan for openings", get a weekly list of matches, or check what's out there — and also to
   read back a digest a previous or scheduled scan already wrote ("show me last week's digest", "what did
   Monday's scan find"). Prepares packets for review; never submits. Companion to job-applications.
@@ -46,23 +45,9 @@ If you fan out to subagents, do it for context isolation, not speed. Scraping to
 
 ## The first scan is a discovery run
 
-The employer registry is what makes every later scan nearly free, and on a first run it holds whatever the user could name at onboarding: a handful of employers, weighted toward the ones famous enough to come to mind. Everything else about their field is discovered by search, paid for once, and thrown away with the postings.
+The registry is what makes every later scan nearly free, and it starts as whatever the user could name at onboarding. A posting expires in weeks; a confirmed feed returns every future opening at that employer for nothing. So when the registry is thin, an expensive sweep's durable output is the **employer list**, not the job list — collect the employer behind every posting that clears title triage, and keep them.
 
-So treat the first scan's durable output as the employer list, not the job list. A posting expires in weeks. A confirmed feed returns every open role at that employer, free, for as long as the employer exists — including next month's opening that nobody thought to search for. The expensive sweep is already surfacing exactly the employers who post the user's roles; the only thing missing was keeping them.
-
-While the sweep runs, collect the employer behind every posting that clears title triage — not only the ones worth applying to. Then write them one per line as `Employer Name | sector` and run:
-
-```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-employers.mjs" --sector industry < names.txt
-node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"
-node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-workday.mjs"
-```
-
-`harvest-employers.mjs` turns each name into candidate board slugs; `discover-ats.mjs` probes them against five public ATS APIs and keeps the ones that answer with real postings; `discover-workday.mjs` covers the large employers the first probe misses. All three merge rather than replace, so a hand-corrected slug is never lost and re-running them is safe.
-
-Say what it bought, in one line, in the chat and in the digest's Process note: employers found, employers confirmed, and that next week's scan pulls those boards directly for nothing. A registry that grew is otherwise invisible — and a discovery run that confirmed nobody is worth knowing about too, since that usually means the title patterns are still the shipped demo ones rather than that the field has no employers.
-
-This is not only a first-run step. Any scan that had to fall back to web search for a whole branch has, by definition, just found employers the registry does not cover. Harvest them.
+Mechanics, commands and what to report: `references/discovery-run.md`. Read it on a first scan, on a registry under about a dozen employers, or after any sweep that covered ground the registry does not reach. On a scan where the registry is already working, skip it — it changes nothing about a normal run.
 
 ## Where to search
 

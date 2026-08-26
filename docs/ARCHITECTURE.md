@@ -44,7 +44,7 @@ Two locations you configure at onboarding:
 ## 2. File inventory
 
 **Ships with the plugin (methodology, field-agnostic):**
-- `skills/job-search/SKILL.md` + `references/{sources.md, digest-template.md}`
+- `skills/job-search/SKILL.md` + `references/{sources.md, digest-template.md, discovery-run.md, scheduling.md}`
 - `skills/job-applications/SKILL.md` + `references/{resume-formats-and-ats.md, writing-playbook.md}`
 - `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, local-tooling.md, templates/…}`
 - `skills/{jobscan-doctor,profile,employers,where,reset}/SKILL.md` — maintenance, no references of their own
@@ -64,7 +64,7 @@ Two locations you configure at onboarding:
   plugin's shipped default.
 - `<jobscan-data>/ats/*.json` — scanner registry, title config and caches.
 
-## 3. The four ideas that make it efficient
+## 3. The five ideas that make it efficient
 
 1. **Derived files + selective propagation.** The digest and base résumés are *derived* from `profile.md`.
    Reading the ~1-page digest instead of the full profile cuts the most frequent read ~4×. The refresh
@@ -84,6 +84,17 @@ Two locations you configure at onboarding:
    listings that will actually be written up reach tier 3. The rule that keeps this honest is that silence
    is never a rejection: a feed stating no salary and no date has not failed a gate, because a guessed value
    deletes a job the user wanted and says nothing.
+
+5. **Three context tiers, and everything sits in the cheapest one that works.** A skill's `description` is
+   loaded into **every** session whether or not it is used, so it carries routing signal and nothing else —
+   never an explanation. `SKILL.md` is loaded whenever the skill triggers, so it holds what applies to
+   *every* run of it. A `references/` file is loaded only when the skill opens it, which is where anything
+   conditional belongs: first-run mechanics, an output format, a scheduler's setup. The test for a new
+   paragraph is not "is this true" but "is this true on the twentieth run" — if not, it is a reference with
+   a one-line trigger in `SKILL.md`, not a section. Two traps worth knowing: the plugin's own
+   `references/sources.md` is **not read by a configured user** (onboarding generates their own copy and
+   `job-search` prefers it), so a standing rule placed there reaches only people who never finished setup;
+   and the same rule in two files is a drift, since only one of them will be updated.
 
 Plus the four-stage token workflow (discover→summarize→discard; read digest once; edit-don't-regenerate
 résumés; cover letter from the tailored résumé), and Firecrawl for cheap dynamic-portal reads + server-side

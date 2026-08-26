@@ -24,33 +24,6 @@ The point is coverage across *kinds* of employer, not a fixed list.
 
 For each category, onboarding records: the boards/URLs, any API pattern, and the target employers.
 
-## Every sweep is also an employer sweep (standing rule)
-
-A search sweep produces two things, and only one of them has ever been kept. The postings expire in weeks.
-The **employers behind them** are the durable find: an employer who posts these roles once posts them again,
-and a confirmed feed returns every future opening for nothing.
-
-So while sweeping, keep the employer name behind every posting that matches on title — including postings
-rejected for salary, location or timing, because the employer is still the right employer. Feed the list to
-`harvest-employers.mjs`, then `discover-ats.mjs` (and `discover-workday.mjs`), and report how many gained a
-live feed. This matters most on a first scan, when the registry holds only what the user could name at
-setup, and after any sweep that had to cover a category the registry does not reach.
-
-## Read the cheapest signal first (standing rule)
-
-Three tiers, and a posting should never reach a more expensive one than the decision needs:
-
-1. **The title** — free. Rejects most of a board.
-2. **The feed's own metadata** — free, and already fetched: location, posting date, and any pay range the
-   ATS publishes. A gate that can be decided here must be decided here; `triage.mjs` handles the salary
-   floor (annualising hourly and monthly ranges first) and an optional age cutoff.
-3. **The posting itself** — the only step that costs anything. Reserve it for candidates that have already
-   cleared 1 and 2, and, at the top of the ranked list, for the few that will actually be written up.
-
-The corollary is a rule about silence: a feed that states no salary and no date is not a posting that fails
-the gates. Never infer either. A missing value costs one fetch; a guessed one deletes a job the user wanted
-and says nothing.
-
 ## Search-term coverage (standing rule)
 
 Run the **full core keyword set** against every site that supports keyword search — not a different subset per

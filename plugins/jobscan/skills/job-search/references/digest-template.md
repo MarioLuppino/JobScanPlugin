@@ -3,8 +3,8 @@
 Write to `<archive>/Job Search Digests/<YYYY-MM-DD> digest.md`. Two parts: a ranked table, then a per-job
 block. Always include the apply link inline in the chat summary too.
 
-The table carries the whole ranked list; the per-job blocks carry only the listings that were verified in
-depth. A row and a block are different claims, and the difference is the point of the format.
+The table carries the whole ranked list; the per-job blocks carry only the listings verified in depth. A row
+and a block are different claims — that difference is the point of the format.
 
 ## Header
 
@@ -16,9 +16,6 @@ fit floor: <count>, of which <count> verified live this run.
 Process: <fallbacks, skipped branches, employers discovered/confirmed — anything that made this run
 differ from a clean one>.
 ```
-
-The Process line is not optional and is not decoration. On an unattended run it is the only place a
-degraded scan can say so.
 
 ## Ranked table
 

@@ -55,6 +55,12 @@ next week cheaper.
 - **Onboarding stops implying the employer list should be longer than anyone can produce.** Asked cold,
   people name a few employers; that is the expected answer, not a thin one. The question is now framed as a
   starting point, with the first scan named as where the rest of the registry comes from.
+- **The discovery run is a reference, not a section.** It is a first-run and thin-registry procedure, so
+  carrying its commands in `job-search/SKILL.md` would have charged every scan for the rest of the user's
+  search to explain something true only at the start. It now lives in `references/discovery-run.md` behind a
+  two-line trigger, which is the same tiering the output format and the scheduler setup already use, and is
+  written down in `ARCHITECTURE.md` §3 so the next addition faces the same test: not "is this true", but "is
+  this true on the twentieth run".
 - **The setup check points a thin registry at a search instead of at the user's memory.** *"Add employers to
   my job scan"* asks someone to remember names they already tried to remember once. The fix now offered is
   the discovery run.
