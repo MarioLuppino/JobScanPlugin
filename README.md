@@ -15,8 +15,9 @@ will ask your permission first and [those prompts look technical](#about-those-p
 
 Two cooperating skills plus onboarding:
 
-- **`job-search`** — the *finder*. Searches boards, de-dups, verifies each posting is live, scores fit, ranks
-  a top ~10, writes a dated digest, and stops.
+- **`job-search`** — the *finder*. Searches boards, de-dups, scores fit, ranks a top ~10, checks the best few
+  in full, writes a dated digest, and stops. Your first scan does one thing more: it keeps the employers it
+  found, so every later scan reads their job boards directly instead of searching for them again.
 - **`job-applications`** — the *drafter*. Maps an employer's competencies to your evidence and produces a
   tailored résumé + cover letter (`.docx`) and interview prep.
 - **`jobscan-onboarding`** — a one-time setup that starts from your CV, asks only what the CV can't answer,

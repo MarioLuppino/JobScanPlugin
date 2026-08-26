@@ -122,6 +122,8 @@ Then offer, without pushing, anything of JobScan's their routine doesn't already
 
 Then set up the ATS feed pipeline, the highest-value step in onboarding. It pulls open roles straight from employers' job-board APIs, which is far cheaper and more complete than keyword search. Describe it to the user as "a faster, cheaper scan", ask only which employers they'd love to work for, and do the rest yourself.
 
+What they can name here is a starting point, not the registry. Anybody asked this question cold produces a handful of employers, weighted toward the famous ones, and that is the expected answer rather than a thin one — so take the names without pressing for more, and do not imply the list should be longer. The first scan searches the boards for real and keeps whoever is actually posting their roles, which is where most of the registry comes from. Say that in one sentence when you take their list, so a short answer does not read as a bad start.
+
 Two directories, and never mix them. The scripts live in the plugin at `${CLAUDE_PLUGIN_ROOT}/scripts/` and are read-only: a `/plugin update` replaces that directory wholesale. Everything personal goes in `<data_path>/ats/`, which nothing but you and the user ever touches. If `${CLAUDE_PLUGIN_ROOT}` is empty in your shell, derive the absolute path from where this `SKILL.md` sits (the plugin root is two levels above `skills/jobscan-onboarding/`) and use it in full. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"` once: it prints every resolved path, and it is the fastest way to confirm the config you wrote in Step 3 is being found.
 
 Then, writing into `<data_path>/ats/`:
@@ -130,6 +132,8 @@ Then, writing into `<data_path>/ats/`:
 2. Copy `scripts/employers.example.json` to `<data_path>/ats/employers.json` with their employers.
 3. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"` and, for large employers, `node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-workday.mjs"`. Both write `ats-feeds.json` into `<data_path>/ats/` themselves.
 4. Verify with `node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" --summary` and `node "${CLAUDE_PLUGIN_ROOT}/scripts/test-triage.mjs"`.
+
+`harvest-employers.mjs` turns a plain list of employer names into registry entries with guessed slugs, merging into `employers.json` rather than replacing it. It is how the first scan grows this list, and it is also the quickest way to add the names they give you here: `echo "Acme Group | industry" | node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-employers.mjs"`.
 
 See `scripts/README.md`. If a script reports it is reading config from the plugin folder, this is a setup from before the split: move those `.json` files into `<data_path>/ats/`, tell the user in one sentence that you moved them so a plugin update can't delete them, and carry on.
 
@@ -168,7 +172,7 @@ Finish with the check, and read it out. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts
 
 Say once what these files are, because the format surprises people. Everything you just generated is plain text ending in `.md`, and on Windows double-clicking one asks which app to open it with, which reads as something broken. Tell them, in a sentence: they never need to open one, asking you to read it back or change it is the intended way, and any text editor opens them if they want to look. The résumés and cover letters are the exception and they should hear that in the same breath: those arrive as real Word `.docx` files, one per application.
 
-Say what the first scan is like before they run it: it's the most expensive run they'll do, later scans skip everything already seen, the digest is written as it goes so stopping partway keeps what was found, and nothing is ever submitted for them. Tell them every scan leaves a dated file in their `Job Search Digests` folder, and that "show me last week's digest" reads it back without running anything.
+Say what the first scan is like before they run it: it's the most expensive run they'll do, and it is the one that pays for the cheap ones — it searches the boards properly, then keeps the employers it found so every later scan pulls those boards directly for nothing. Later scans also skip everything already seen, the digest is written as it goes so stopping partway keeps what was found, and nothing is ever submitted for them. Say too that a scan checks the top few listings in full and lists the rest, so the digest is longer than the part that was verified — and that picking one from the list is fine, because nothing is drafted until the posting is re-confirmed open. Tell them every scan leaves a dated file in their `Job Search Digests` folder, and that "show me last week's digest" reads it back without running anything.
 
 Tell them the four things they can change later without another interview: "change my salary floor" and anything else in the profile, "add employers to my job scan", "where does jobscan keep my files", and, if this setup turns out to be built on something they got wrong, "start my jobscan setup over". Say that last one once, plainly.
 

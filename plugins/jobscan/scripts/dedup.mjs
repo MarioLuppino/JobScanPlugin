@@ -16,7 +16,21 @@
  *
  *   cat candidates.json | node dedup.mjs                # new + adjacent
  *   cat candidates.json | node dedup.mjs --record       # also update the cache
+ *   cat judged.json | node dedup.mjs --record --record-verdict passed
  *   node dedup.mjs --stats                              # index/cache summary
+ *
+ * WHAT --record ALONE RECORDS, and why the second form exists. Plain --record
+ * caches only what this script itself decided: duplicates and prior cache hits.
+ * A posting the SCAN looked at and passed on is invisible to it, so that posting
+ * is re-fetched and re-judged every week forever -- exactly the cost the cache
+ * was built to remove. --record-verdict lets the scan write back what it actually
+ * concluded, once, at the end of a run.
+ *
+ * Record ONLY postings that were genuinely judged: deep-verified and scored below
+ * the fit floor, or shown to the user and declined. Never record a listing that
+ * was merely surfaced and not examined -- a shallow shortlist entry, anything in
+ * a discovery sweep. A cached verdict is permanent and silent, so recording an
+ * unexamined posting deletes it from every future scan without anyone deciding to.
  *
  * PATHS: the applied index comes from $JOBSCAN_INDEX, else archive_path in
  * ~/.claude/jobscan-data/jobscan-config.md, else the working directory. The
@@ -32,8 +46,22 @@ const INDEX_PATH = archivePath('Applied Index.md', 'JOBSCAN_INDEX');
 
 const RECORD = process.argv.includes('--record');
 const STATS = process.argv.includes('--stats');
+const rv = process.argv.indexOf('--record-verdict');
+const RECORD_VERDICT = rv > -1 ? process.argv[rv + 1] : null;
 const vi = process.argv.indexOf('--verdict');
 const WANT = vi > -1 ? process.argv[vi + 1].split(',') : ['new', 'adjacent'];
+
+/** Verdicts a caller may write back. Anything else is a typo, and a typo here
+ *  would silently bury postings under a verdict nothing ever reads. */
+const RECORDABLE = new Set(['passed']);
+if (RECORD_VERDICT && !RECORDABLE.has(RECORD_VERDICT)) {
+  console.error(`dedup: --record-verdict ${RECORD_VERDICT} is not one of: ${[...RECORDABLE].join(', ')}`);
+  process.exit(1);
+}
+if (RECORD_VERDICT && !RECORD) {
+  console.error('dedup: --record-verdict does nothing without --record');
+  process.exit(1);
+}
 
 /** Words carrying no matching signal in an employer or role string. */
 const STOP = new Set([
@@ -143,12 +171,17 @@ process.stdin.on('end', () => {
     const r = screen(c);
     counts[r.verdict]++;
     if (WANT.includes(r.verdict)) out.push({ ...c, _dedup: r.reason, _verdict: r.verdict });
-    if (RECORD && c.url && (r.verdict === 'duplicate' || r.verdict === 'seen')) {
-      cache[c.url] = { verdict: r.verdict, date: today, title: c.title, employer: c.employer };
+    // A posting this script already recognised keeps its own verdict and its
+    // original date; --record-verdict only supplies one for the rest.
+    const natural = (r.verdict === 'duplicate' || r.verdict === 'seen') ? r.verdict : null;
+    const record = natural || RECORD_VERDICT;
+    if (RECORD && c.url && record) {
+      cache[c.url] = { verdict: record, date: today, title: c.title, employer: c.employer };
     }
   }
 
   console.error(`dedup: ${cands.length} in -> new ${counts.new}, adjacent ${counts.adjacent}, duplicate ${counts.duplicate}, seen ${counts.seen}`);
+  if (RECORD_VERDICT) console.error(`dedup: recording ${counts.new + counts.adjacent} as "${RECORD_VERDICT}" — they will not be surfaced again`);
   if (RECORD) {
     const out = writePath('seen-urls.json');
     writeFileSync(out, JSON.stringify(cache, null, 2) + '\n');
