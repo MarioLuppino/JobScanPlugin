@@ -192,14 +192,18 @@ const { data: employersFile, legacy: employersLegacy } = readPersonal('employers
 const employers = employersFile?.employers;
 if (!Array.isArray(employers) || employers.length === 0) {
   report('fix', 'Employer list', `no employers registered in ${d(ATS_DIR)}`,
-    'Say "add employers to my job scan". The benchmark figures in the docs come from a registry of two ' +
-    'dozen; a scan with none falls back to web search entirely.');
+    'Say "find employers for my job scan" — the first scan can search the boards and keep whoever is ' +
+    'posting your roles. The benchmark figures in the docs come from a registry of two dozen; a scan ' +
+    'with none falls back to web search entirely, every week.');
 } else {
   const state = employers.length < 5 ? 'note' : 'ok';
   report(state, 'Employer list', `${employers.length} employer${employers.length === 1 ? '' : 's'}` +
     (state === 'note' ? ' — thin; results grow steeply up to about two dozen' : '') +
     (employersLegacy ? OLD_LOCATION : ''),
-    state === 'note' ? 'Say "add employers to my job scan" whenever you think of another one.' : null);
+    state === 'note'
+      ? 'Say "find employers for my job scan" to grow it from a real search, or "add employers to my ' +
+        'job scan" whenever you think of another one.'
+      : null);
 }
 
 const { data: feedsFile, legacy: feedsLegacy } = readPersonal('ats-feeds.json');

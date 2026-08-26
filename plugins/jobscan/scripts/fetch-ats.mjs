@@ -20,6 +20,7 @@
 
 import { readFileSync } from 'node:fs';
 import { triageAll } from './triage.mjs';
+import { salaryMinFrom } from './salary.mjs';
 import { readPath, ATS_DIR } from './paths.mjs';
 
 const REG = readPath('ats-feeds.json', 'ats-feeds.example.json');
@@ -93,6 +94,7 @@ const ADAPTERS = {
     const j = await getJSON(`https://boards-api.greenhouse.io/v1/boards/${f.slug}/jobs`);
     return (j?.jobs || []).map((x) => ({
       title: x.title, url: x.absolute_url, location: x.location?.name || '', posted: x.updated_at || null,
+      salaryMin: salaryMinFrom(x),
     }));
   },
 
@@ -101,6 +103,7 @@ const ADAPTERS = {
     return (j || []).map((x) => ({
       title: x.text, url: x.hostedUrl, location: x.categories?.location || '',
       posted: x.createdAt ? new Date(x.createdAt).toISOString() : null,
+      salaryMin: salaryMinFrom(x),
     }));
   },
 
@@ -108,6 +111,7 @@ const ADAPTERS = {
     const j = await getJSON(`https://api.ashbyhq.com/posting-api/job-board/${f.slug}`);
     return (j?.jobs || []).map((x) => ({
       title: x.title, url: x.jobUrl, location: x.location || '', posted: x.publishedAt || null,
+      salaryMin: salaryMinFrom(x),
     }));
   },
 
@@ -116,6 +120,7 @@ const ADAPTERS = {
     return (j?.jobs || []).map((x) => ({
       title: x.title, url: x.url || x.application_url,
       location: [x.city, x.state, x.country].filter(Boolean).join(', '), posted: x.published_on || null,
+      salaryMin: salaryMinFrom(x),
     }));
   },
 
@@ -131,6 +136,7 @@ const ADAPTERS = {
           url: `https://jobs.smartrecruiters.com/${f.slug}/${x.id}`,
           location: [l.city, l.region, l.country].filter(Boolean).join(', '),
           posted: x.releasedDate || null,
+          salaryMin: salaryMinFrom(x),
         });
       }
     };
@@ -174,6 +180,7 @@ const ADAPTERS = {
           title: x.title,
           url: `https://${f.host}/en-US/${f.site}${x.externalPath}`,
           location: x.locationsText || '', posted: x.postedOn || null,
+          salaryMin: salaryMinFrom(x),
         });
       }
     }
@@ -205,6 +212,7 @@ const ADAPTERS = {
       title: x.JobTitle,
       url: `https://recruiting.paylocity.com/recruiting/jobs/Details/${x.JobId}`,
       location: x.LocationName || '', posted: x.PublishedDate || null,
+      salaryMin: salaryMinFrom(x),
     }));
   },
 };

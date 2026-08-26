@@ -2,9 +2,10 @@
 name: employers
 description: >-
   Adds or removes employers from the JobScan scanner's registry, updates the job titles it matches, and
-  re-runs feed discovery so the change takes effect. Use when the user wants the scan to watch a new company
-  or organization, stop watching one, or says "add employers to my job scan", "update my job titles", or "my
-  scan is finding nothing".
+  re-runs feed discovery so the change takes effect. Also grows the registry from a real search rather than
+  from memory. Use when the user wants the scan to watch a new company or organization, stop watching one, or
+  says "add employers to my job scan", "find employers for my job scan", "update my job titles", or "my scan
+  is finding nothing".
 ---
 
 # Employers and job titles
@@ -31,9 +32,14 @@ Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/paths.mjs"` once if anything looks like
 ## Adding an employer
 
 1. Ask only for the name. Never ask for a slug, an ATS, or a URL — that is what discovery is for.
-2. Append to `employers.json`: the display name, a `sector` tag consistent with the ones already there, and
-   **several candidate slugs** — lowercase, no spaces, with and without suffixes (`acme`, `acmeinc`,
-   `acme-group`). Probing is free; guessing widely costs nothing and saves a round trip.
+2. Add it to `employers.json`. The quickest route is to pipe the name in and let the slug guessing happen
+   for you, which also merges rather than overwrites:
+   ```
+   echo "Acme Group | industry" | node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-employers.mjs"
+   ```
+   Editing the file by hand is fine too — display name, a `sector` tag consistent with the ones already
+   there, and **several candidate slugs** (`acme`, `acmeinc`, `acme-group`). Probing is free, so guess
+   widely. If you already know the real slug, pass it as a third field: `Acme Group | industry | acmejobs`.
 3. Re-run discovery:
    ```
    node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"
@@ -48,6 +54,30 @@ misses are one of: the employer uses Workday (run `discover-workday.mjs`), the s
 (search `site:job-boards.greenhouse.io <employer>` or `site:jobs.lever.co <employer>` and try again), or they
 genuinely run their own careers page with no public feed — in which case say the weekly web-search sweep will
 have to cover them, and add them to `<data_path>/sources.md` so it does.
+
+## Growing the registry from a search rather than from memory
+
+"Find employers for my job scan", a registry under about a dozen, or a scan that keeps falling back to web
+search: the fix is not to ask the user to remember more names. They already named everyone they could at
+setup. The names they cannot supply are in the search results the scan is already paying for.
+
+Run a sweep for their job titles across their sectors, collect the employer behind **every** posting that
+matches — not only the ones worth applying to, because the point is next month's opening, not this one —
+then:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-employers.mjs" --sector university < names.txt
+node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-workday.mjs"
+```
+
+`names.txt` is one employer per line, `Name | sector`, blank lines and `#` comments ignored. Harvesting
+merges: existing employers keep their sector and their hand-corrected slugs, and gain only guesses they did
+not already have, so running it twice is safe.
+
+Report the pair of numbers that means something — how many names went in, how many came out with a live
+feed — and what it changes: those boards are now pulled directly every week for nothing. `job-search` runs
+this itself on a first scan; here it is on demand.
 
 ## Removing one
 

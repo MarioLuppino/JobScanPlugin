@@ -85,6 +85,19 @@ node "$S/fetch-ats.mjs" | node "$S/dedup.mjs" --record > candidates.json
 **Step 1 is the one that matters.** `triage-config.json` holds the job titles of *your* field. Leave it
 unedited and almost nothing will match, because the defaults are deliberately generic placeholders.
 
+**Step 2 is the one that grows.** A registry built from memory is a handful of employers; a registry built
+from a search is the field. Any list of names can be turned into entries — the slugs are guessed for you,
+and the merge never overwrites what is already there:
+
+```bash
+printf '%s\n' "Acme Group | industry" "Example Institute | university" \
+  | node "$S/harvest-employers.mjs"
+node "$S/discover-ats.mjs"        # which of the guesses are real
+```
+
+That is what makes a first scan worth its cost: it searches the boards once, keeps whoever is posting your
+roles, and every scan afterwards pulls those boards directly for nothing.
+
 ## Files
 
 | File | Purpose |
@@ -92,8 +105,10 @@ unedited and almost nothing will match, because the defaults are deliberately ge
 | `paths.mjs` | Resolves plugin root vs. data directory vs. archive. Run it alone to print all of them. |
 | `doctor.mjs` | Checks every precondition and prints one line each, with the fix. Start here when a scan is thin. |
 | `fetch-ats.mjs` | Pulls every registered feed, normalizes, triages. The main entry point. |
-| `triage.mjs` | Zero-token title/location/salary filter. `match` / `review` / `exclude`. |
+| `triage.mjs` | Zero-token title / location / salary / age filter. `match` / `review` / `exclude`. |
+| `salary.mjs` | Reads a comparable annual minimum out of whatever shape a feed publishes pay in. |
 | `dedup.mjs` | Screens against your applied-index and a persistent seen-URL cache. |
+| `harvest-employers.mjs` | Turns a list of employer *names* into registry entries with guessed slugs. |
 | `discover-ats.mjs` | Probes Greenhouse / Lever / SmartRecruiters / Ashby / Workable slugs. |
 | `discover-workday.mjs` | Probes Workday CXS paths; `--retry` re-checks ones marked `pending`. |
 | `test-triage.mjs` | Regression tests. Run after any edit to your patterns. |
@@ -143,14 +158,40 @@ Three buckets:
 - **`match`** — a title matched one of your `matchTitlePatterns`. Worth pulling the full posting.
 - **`review`** — plausible but ambiguous: a generic title at a relevant-sector employer, or one of your
   domain titles somewhere you cannot easily work.
-- **`exclude`** — wrong tier, wrong field, or below your salary floor. Never fetched.
+- **`exclude`** — wrong tier, wrong field, below your salary floor, or past your age cutoff. Never fetched.
 
 If `review` balloons into a holding pen, the usual cause is a sector in `relevantSectors` whose employers
 post hundreds of roles you never want. Removing that one sector tag is normally the whole fix.
 
+**The salary and age gates only fire on what a feed actually stated.** Not every ATS publishes a pay range,
+and the ones that do often publish it only when the employer opts in, so `salary.mjs` reads whatever shape
+is there and returns nothing when there is nothing to read. Hourly, weekly and monthly ranges are converted
+to an annual figure before the comparison — an hourly rate measured against an annual floor would reject
+every job on the board — and a figure whose pay period the feed never stated is treated as absent rather
+than guessed at. `maxAgeDays` is off by default for the same reason: a cutoff set too tight discards live
+roles, and public-sector openings routinely stay posted for months. Silence is never a rejection; a missing
+value costs one fetch, a guessed one deletes a job you wanted.
+
 **Watch out for `\b` at the end of a prefix pattern.** `/hygien\b/` never matches "hygiene", because there
 is no word boundary between "n" and "e". This shipped as a real bug and let a whole category through.
 `test-triage.mjs` guards against it; add a case whenever you add a prefix pattern.
+
+## What the seen-URL cache is allowed to know
+
+`dedup.mjs --record` caches the duplicates it found itself. That is safe and always correct, but it is only
+half of what the cache was built for: a posting the *scan* opened, verified and rejected is invisible to it,
+so that posting is fetched and judged again every week, forever.
+
+```bash
+cat rejected.json | node "$S/dedup.mjs" --record --record-verdict passed
+```
+
+Use it only for postings that were genuinely examined — deep-verified and scored below your fit floor, or
+shown to you and declined. **Never** for a listing that was merely surfaced: nothing from a shortlist entry
+that was never opened, nothing from a discovery sweep. A cached verdict is permanent and completely silent,
+so recording an unexamined posting deletes it from every future scan without anyone having decided to. If
+that happens, clearing the cache is what the `reset` skill's "forget what the scanner remembers" route is
+for.
 
 ## Closing the loop
 

@@ -8,6 +8,9 @@ never part of the repo — the plugin ships methodology; your profile is generat
 Three working skills, five maintenance skills, and a data layer:
 
 - **`job-search`** (finder) — scan → de-dup → verify live → score fit → rank → write dated digest → stop.
+  Verification is depth-split: the top few listings are retrieved and confirmed, the rest are carried as
+  rows from feed data and tagged `NOT-CHECKED`. A first run is also a *discovery* run — it keeps the
+  employers the sweep found, which is what makes later runs cheap.
 - **`job-applications`** (drafter) — deconstruct posting → fit go/no-go → competency→evidence map → tailored
   résumé (edit a base) → cover letter (in your voice) → interview prep → file numbered folder + index row.
 - **`jobscan-onboarding`** (setup) — read the user's CV → pre-fill what it answers → interview only the gaps
@@ -45,7 +48,7 @@ Two locations you configure at onboarding:
 - `skills/job-applications/SKILL.md` + `references/{resume-formats-and-ats.md, writing-playbook.md}`
 - `skills/jobscan-onboarding/SKILL.md` + `references/{intake-questionnaire.md, local-tooling.md, templates/…}`
 - `skills/{jobscan-doctor,profile,employers,where,reset}/SKILL.md` — maintenance, no references of their own
-- `scripts/{paths,doctor,fetch-ats,triage,dedup,discover-ats,discover-workday,calibrate,pipeline}.mjs`
+- `scripts/{paths,doctor,fetch-ats,triage,salary,dedup,harvest-employers,discover-ats,discover-workday,calibrate,pipeline}.mjs`
   + `*.example.json` (read-only shipped defaults) + `test-triage.mjs`
 
 **Generated locally by onboarding (private, git-ignored):**
@@ -61,7 +64,7 @@ Two locations you configure at onboarding:
   plugin's shipped default.
 - `<jobscan-data>/ats/*.json` — scanner registry, title config and caches.
 
-## 3. The two ideas that make it efficient
+## 3. The four ideas that make it efficient
 
 1. **Derived files + selective propagation.** The digest and base résumés are *derived* from `profile.md`.
    Reading the ~1-page digest instead of the full profile cuts the most frequent read ~4×. The refresh
@@ -69,6 +72,18 @@ Two locations you configure at onboarding:
    a phrasing tweak refreshes the digest; a new role/pub/cert also refreshes the base résumés.
 2. **One dedup file instead of rescanning folders.** `Applied Index.md` is read once per scan; the filing step
    appends one row. This replaces an O(folders) cost that grew with every application.
+3. **The registry compounds; the job list decays.** A posting expires in weeks, so a scan that keeps only
+   postings has to buy its coverage again every week. A confirmed ATS feed keeps returning every future
+   opening at that employer for free. So the durable output of an expensive sweep is the *employer* list:
+   `harvest-employers.mjs` turns the names behind matching postings into registry entries, `discover-ats.mjs`
+   confirms which have a public feed, and the next scan starts from those. The first run buys the registry;
+   every run after it spends it.
+4. **Three cost tiers, and nothing skips ahead.** A title match is free; the feed's own metadata (location,
+   date, and any pay range, annualised by `salary.mjs`) is free and already fetched; retrieving the posting
+   is the only step that costs. Any gate decidable at tier 1 or 2 is decided there, and only the handful of
+   listings that will actually be written up reach tier 3. The rule that keeps this honest is that silence
+   is never a rejection: a feed stating no salary and no date has not failed a gate, because a guessed value
+   deletes a job the user wanted and says nothing.
 
 Plus the four-stage token workflow (discover→summarize→discard; read digest once; edit-don't-regenerate
 résumés; cover letter from the tailored résumé), and Firecrawl for cheap dynamic-portal reads + server-side
@@ -111,7 +126,7 @@ unchanged.
 
 Prepare-never-submit · two-gate live verification · no fabrication · dedup before digest and pre-draft · hard
 gates (authorization/sponsorship, salary floor + relocation + pay-grade, location, fit floor, avoid-list) ·
-published-only publications.
+published-only publications · a cached verdict only about a posting that was actually examined.
 
 **And: no silent degradation.** Every fallback is announced — in the digest's Process note during a scan, in
 plain words during setup. This is the rule the 0.3.0 audit was written about: a pipeline that could not run

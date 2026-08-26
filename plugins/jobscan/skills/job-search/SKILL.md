@@ -2,8 +2,9 @@
 name: job-search
 description: >-
   Weekly job scanner. Searches the web for ACTIVE job listings the user is a strong fit for, verifies each is
-  live, scores it against their profile, ranks the top ~10, and writes a dated digest with direct apply links
-  — then hands selected jobs to the job-applications skill. Use whenever the user wants to find jobs, run a
+  live, scores it against their profile, ranks the top ~10 — verifying the top few in depth and listing the
+  rest — and writes a dated digest with direct apply links, then hands selected jobs to the job-applications
+  skill. On a first run it also keeps the employers it found, so later scans pull their boards for free. Use whenever the user wants to find jobs, run a
   job search, "scan for openings", get a weekly list of matches, or check what's out there — and also to
   read back a digest a previous or scheduled scan already wrote ("show me last week's digest", "what did
   Monday's scan find"). Prepares packets for review; never submits. Companion to job-applications.
@@ -22,10 +23,11 @@ Then read the user's compressed profile digest at `<jobscan-data>/profile-core.m
 - Prepare, never submit. Produce ready-to-submit packets and direct apply links; the user does the final submission. Never auto-submit, fill application forms, or create accounts on any job board or employer ATS. Read-only browsing only.
 - Active listings only, no fabrication. Every listing must have a real, working canonical source URL actually loaded this run. Never reconstruct a posting from memory or an aggregator snippet. If you can't verify it's real and open, leave it out.
 - Two-gate verification.
-  - Gate 1 (digest): retrieve each posting; capture the canonical apply URL (employer ATS/careers page, not an aggregator), the exact title, and posted/closing date. Tag `VERIFIED-LIVE` or `UNVERIFIED`.
+  - Gate 1 (digest): retrieve each posting; capture the canonical apply URL (employer ATS/careers page, not an aggregator), the exact title, and posted/closing date. Tag `VERIFIED-LIVE` or `UNVERIFIED`. A listing deliberately not retrieved this run is tagged `NOT-CHECKED` — see the depth rule under Fit scoring — and the three tags mean three different things: confirmed open, attempted and unconfirmable, and never looked at. Never let a `NOT-CHECKED` row acquire any detail a feed did not supply.
   - Gate 2 (pre-draft, HARD STOP): no application material is generated for any job unless its posting is re-confirmed live at draft time. No exceptions, however strong the fit.
 - Dynamic portals (NEOGOV/governmentjobs, Paylocity, USAJOBS, CalCareers, Workday) can't be read by a plain fetch. Use `firecrawl_scrape` (renders JS) first: a firecrawl load of the real posting confirming title and open state counts as `VERIFIED-LIVE`. Fall back to browser tools if firecrawl is blocked. If neither confirms, leave `UNVERIFIED` and say so. With no Firecrawl at all, note it once and use built-in fetch/search plus browser tools.
 - No duplicates, no resurfacing. Before finalizing the digest and again at the pre-draft gate, screen every candidate against two files in `<archive>`: `Applied Index.md` (packets already built) and `Considered - Not Pursued.md` (roles seen and passed on). Read those two files, not every folder. Exact or near-exact employer+role match in either means exclude. Same employer, adjacent role means surface once as a possible duplicate and let the user decide. When the user tells you to drop a listing, or reviews a digest role and skips it, append a row to `Considered - Not Pursued.md` (`Employer | Role | Reason | Date | Permanent?`) so it doesn't reappear next scan.
+- Only cache a verdict about a posting that was actually examined. The seen-URL cache is permanent and silent: a URL in it is skipped by every future scan with no line anywhere saying so. That is exactly right for a posting this scan opened, verified and rejected, and exactly wrong for one that was merely surfaced. Never record a listing carried at `NOT-CHECKED` depth, and never record a discovery sweep. See "Record what was judged" below for the command and what belongs in it.
 - Hard gates, encoding the user's from onboarding: work-authorization/sponsorship logic; salary floor (plus higher relocation floor and any government pay-grade floor); location/political-lean handling; the fit floor (exclude anything below the chosen score); and the avoid-list (sectors that consistently don't work out). Write each as rule + reason + how-to-apply. Always surface salary in the digest.
 
 ## Token-efficient staged workflow (STANDING RULE)
@@ -36,9 +38,31 @@ Run in distinct stages; treat context as a limited resource. Goal: output indist
 2. Candidate retrieval: read `profile-core.md` once per run and reuse it for every listing.
 3. (Résumé tailoring and 4. cover letter run in `job-applications` on selection. See that skill.)
 
-Two-stage extraction. Never pull a full posting just to learn it fails a gate. The first pass extracts only title, salary, open/closed, location and any hard credential requirement; only postings clearing the gates get a full extraction. Most die at stage one.
+Two-stage extraction. Never pull a full posting just to learn it fails a gate. The first pass extracts only title, salary, open/closed, location and any hard credential requirement; only postings clearing the gates get a full extraction. Most die at stage one. Cheapest first, always: a title pattern costs nothing, the feed's own metadata (location, posting date, and any pay range it publishes) costs nothing, and only after both is a posting worth fetching. Anything a gate can decide from metadata should never reach a fetch.
+
+Then a third stage, which is the one that decides the run's cost: only the top few survivors are extracted in full. See "Verify in depth at the top, list the rest" under Fit scoring.
 
 If you fan out to subagents, do it for context isolation, not speed. Scraping tools are usually rate-limited per account, so parallel agents contend for the same slots and buy little wall-clock. The real win is that an agent reading ten postings and returning ten structured verdicts keeps ten full postings out of the main context. So: the main thread runs the ATS feeds and cheap sweeps (already filtered, fast); subagents do per-posting deep reads and scoring, returning schema-shaped data, never prose; the main thread keeps dedup, ranking and digest-writing, which need the whole picture and go inconsistent when split. Fan out only above roughly 8-10 postings, since each agent re-reads the profile and rules as fixed overhead. Add a final completeness check that every source branch was actually searched: a batch that times out silently looks identical to a source that had nothing.
+
+## The first scan is a discovery run
+
+The employer registry is what makes every later scan nearly free, and on a first run it holds whatever the user could name at onboarding: a handful of employers, weighted toward the ones famous enough to come to mind. Everything else about their field is discovered by search, paid for once, and thrown away with the postings.
+
+So treat the first scan's durable output as the employer list, not the job list. A posting expires in weeks. A confirmed feed returns every open role at that employer, free, for as long as the employer exists — including next month's opening that nobody thought to search for. The expensive sweep is already surfacing exactly the employers who post the user's roles; the only thing missing was keeping them.
+
+While the sweep runs, collect the employer behind every posting that clears title triage — not only the ones worth applying to. Then write them one per line as `Employer Name | sector` and run:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-employers.mjs" --sector industry < names.txt
+node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-ats.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-workday.mjs"
+```
+
+`harvest-employers.mjs` turns each name into candidate board slugs; `discover-ats.mjs` probes them against five public ATS APIs and keeps the ones that answer with real postings; `discover-workday.mjs` covers the large employers the first probe misses. All three merge rather than replace, so a hand-corrected slug is never lost and re-running them is safe.
+
+Say what it bought, in one line, in the chat and in the digest's Process note: employers found, employers confirmed, and that next week's scan pulls those boards directly for nothing. A registry that grew is otherwise invisible — and a discovery run that confirmed nobody is worth knowing about too, since that usually means the title patterns are still the shipped demo ones rather than that the field has no employers.
+
+This is not only a first-run step. Any scan that had to fall back to web search for a whole branch has, by definition, just found employers the registry does not cover. Harvest them.
 
 ## Where to search
 
@@ -50,7 +74,7 @@ Resolve the scripts directory first, because a bare `node scripts/…` will not 
 node "${CLAUDE_PLUGIN_ROOT}/scripts/doctor.mjs"
 ```
 
-It reports every precondition in one pass: paths, config, profile, job titles, employer registry, feeds, archive, applied index. `paths.mjs` alone still prints just the resolved paths if that is all you need. Follow the `jobscan-doctor` skill's triage: fatal (no config, no profile) stops the scan and offers onboarding; degrading (no registry, no Node, no Firecrawl) continues on the fallback path and goes in the digest's Process note; thin (few employers, no recorded outcomes) is mentioned once at the end. Also confirm Firecrawl by calling it rather than trusting the config line, since a server connected during onboarding isn't loaded until Claude Code restarts.
+It reports every precondition in one pass: paths, config, profile, job titles, employer registry, feeds, archive, applied index. `paths.mjs` alone still prints just the resolved paths if that is all you need. Follow the `jobscan-doctor` skill's triage: fatal (no config, no profile) stops the scan and offers onboarding; degrading (no registry, no Node, no Firecrawl) continues on the fallback path and goes in the digest's Process note; thin (few employers, no recorded outcomes) is mentioned once at the end — and a thin registry is the trigger for the discovery run above, not just a remark. Also confirm Firecrawl by calling it rather than trusting the config line, since a server connected during onboarding isn't loaded until Claude Code restarts.
 
 Then run the cheap half of the scan:
 
@@ -59,7 +83,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-ats.mjs" \
   | node "${CLAUDE_PLUGIN_ROOT}/scripts/dedup.mjs" --record > candidates.json
 ```
 
-That pulls every registered employer, applies zero-token title triage, and screens against the applied-index and seen-URL cache. On a tuned 24-employer registry this returned ~1,950 postings for zero API cost with ~87% rejected before anything reached context; a fresh registry returns far less until onboarding's employer list grows. Only then spend search budget on what the registry does not cover. Setup and the per-ATS details are in `scripts/README.md`.
+That pulls every registered employer, applies zero-token title triage, and screens against the applied-index and seen-URL cache. Triage rejects on the title, on any pay range the feed publishes (converted to an annual figure first, so an hourly rate is not compared against an annual floor), and on posting age where the user has set a cutoff — all for nothing, before a single fetch. A posting the feed says nothing about is never rejected for the silence. On a tuned 24-employer registry this returned ~1,950 postings for zero API cost with ~87% rejected before anything reached context; a fresh registry returns far less, which is what the discovery run above exists to fix rather than a reason to expect little. Only then spend search budget on what the registry does not cover. Setup and the per-ATS details are in `scripts/README.md`.
 
 The scripts never write inside the plugin. Every personal file (`employers.json`, `triage-config.json`, `ats-feeds.json`, `workday-candidates.json`, `seen-urls.json`) lives in `<jobscan-data>/ats/`, because the plugin directory is replaced on `/plugin update` and anything stored there is destroyed. `paths.mjs` resolves that from `$JOBSCAN_DATA`, then `data_path` in the config, then `~/.claude/jobscan-data/`. If a script reports it is reading config from the plugin folder, that install predates the split: move those files to `<jobscan-data>/ats/` and say you did.
 
@@ -83,15 +107,29 @@ Operational rules learned the expensive way:
 
 ## Fit scoring
 
-Apply the `job-applications` competency-mapping method. Gate checks (must pass): authorized (or sponsored), active, meets hard/required quals (or a marked near-miss). Assign a fit score 0-100 with a one-line rationale, top 1-2 matches, biggest gap, and a tier tag (federal / state agency / industry / academic / sales) that drives the résumé template. Rank by fit; keep the top ~10 (apply the user's split quota if set). Exclude anything below the fit floor, and never pad the count by lowering it.
+Apply the `job-applications` competency-mapping method. Gate checks (must pass): authorized (or sponsored), active, meets hard/required quals (or a marked near-miss). Assign a fit score 0-100 with a one-line rationale, top 1-2 matches, biggest gap, and a tier tag (federal / state agency / industry / academic / sales) that drives the résumé template. Rank by fit; keep the top ~10 (apply the user's split quota if set), and verify them to two different depths — see below. Exclude anything below the fit floor, and never pad the count by lowering it.
 
 Gate failures are disqualifications, not low scores. A role that fails a hard gate (below the salary floor, not authorized to work there, closed, a required credential the user genuinely lacks) is excluded outright; no strength elsewhere redeems it. Score only what clears the gates. Keep the weighted dimensions and their weights written down rather than re-derived per posting, or scores will not be comparable between listings or between scans.
+
+### Verify in depth at the top, list the rest
+
+The digest's length and the digest's cost are different things. A row in the ranked table is nearly free. Gate 1 — retrieving the posting, confirming it open, extracting it in full — is the expensive part, and doing it ten times does it seven times more than the user will act on this week.
+
+So split the list by depth instead of shortening it. The top three by provisional score — or enough to cover a weekly application quota, whichever is more — get the full treatment: retrieved, confirmed live, scored against the full posting, written up as per-job blocks, tagged `VERIFIED-LIVE`. Everything below that is carried as a table row only, from what the feed already reported (title, employer, location, salary, date), with a provisional score written `~72` and the tag `NOT-CHECKED`. Never write a per-job block for a listing nobody retrieved: its fields are precisely the ones a feed cannot answer, and filling them from a title is fabrication.
+
+This is safe because of Gate 2, not in spite of it. No application material is ever generated against a posting that has not been re-confirmed live at draft time, so a shallow entry the user picks fails loudly at the gate instead of quietly producing a packet for a role that closed a month ago.
+
+Keep the list itself at about ten. Cutting it to three costs three things that are not obvious from inside a single scan: a user with a weekly application quota needs volume, and the rule below says plainly that a scan returning less than the quota has failed at its primary job; `calibrate.mjs` reports conversion by score band, which needs listings spread across bands before it can say anything; and `Considered - Not Pursued.md` only ever records a decision about a role that was surfaced to be declined. What is scarce is depth, not rows.
+
+A provisional score still obeys the fit floor — never carry a `NOT-CHECKED` row below it, and never pad the list by relaxing it. But never present a provisional score as a fit, either. It is a prediction from a title, a location and a salary line, and the reason it is marked at all is that the full posting moves it often.
 
 Let recorded outcomes correct the rules, and actually read them. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/calibrate.mjs"` periodically: it reports conversion by score band and flags rules the user's own outcomes contradict. Run `node "${CLAUDE_PLUGIN_ROOT}/scripts/pipeline.mjs"` at the start of a scan for what is still live, what is stale enough to follow up on, and whether a weekly quota is being met. Both find `Applied Index.md` through `archive_path` in the config; if either reports no index, that is a path problem to fix, not a finding that the user never recorded outcomes. The `Outcome` column in `Applied Index.md` exists so gates can be checked against reality. One user's rule screened out an entire government pay grade as too junior; they were later hired at exactly that grade, which carried a promotion ladder to a far higher one. Whenever an outcome contradicts a gate, fix the gate and say so: a rule that would have discarded a job the user actually took is a bug, not a preference.
 
 ### If the user has a weekly application quota
 
 Some users must apply to a minimum number of jobs per week to maintain unemployment benefits. When that is set, it changes what the scan is for: the deliverable is no longer a tidy ranked ten, it is enough genuinely applyable roles to clear the quota. A scan that surfaces fewer has failed at its primary job, so say so plainly and widen immediately.
+
+A quota also sets the verification depth, not just the count. A `NOT-CHECKED` row is a lead, not an applyable role: it has not been confirmed open. So verify in full at least as many as the quota requires, and if the sweep cannot produce that many, say the number that was actually verified rather than reporting the table's length.
 
 Never let a quota lower the fit floor or relax verification. The answer to a thin week is a wider sweep, never a padded list. A prepared packet does not count toward a quota; only a submitted application does, and the user submits it. Log submissions in `Work Search Log.md`.
 
@@ -101,7 +139,17 @@ Write to `<archive>/Job Search Digests/<YYYY-MM-DD> digest.md` using `references
 
 Write the digest as you go, not at the end. A full scan (thousands of postings pulled, subagents fanned out, every survivor verified live and scored) is a large consumption event, and a user on a lower plan can hit a limit partway through. If the file is only written at the end, they have nothing: no partial list, no record of what was already checked, no way to resume. So create the digest file as soon as the first batch is scored, marked `IN PROGRESS`, and append each batch to it. Re-rank when the scan completes and drop the marker.
 
-Say up front what a first scan involves if this is the user's first run: roughly how long, that it is the most expensive run they'll do (later scans dedup against the seen-URL cache), and that stopping is safe because the digest is on disk from the first batch onward.
+Say up front what a first scan involves if this is the user's first run: roughly how long, that it is the most expensive run they'll do, and that stopping is safe because the digest is on disk from the first batch onward. Say what makes the later ones cheap, because it is the reason this one costs what it does — the scan keeps the employers it finds, and next week it pulls their boards directly instead of searching for them again. The first run buys the registry; every run after it spends the registry.
+
+### Record what was judged
+
+`dedup.mjs --record` caches only the duplicates it found itself. What it cannot see is a posting this scan opened, verified and rejected — so that posting is fetched and judged again next week, and every week after, which is the exact cost the cache exists to remove. Close the loop at the end of a run:
+
+```
+cat rejected.json | node "${CLAUDE_PLUGIN_ROOT}/scripts/dedup.mjs" --record --record-verdict passed
+```
+
+Only genuinely examined postings belong in that file: deep-verified and scored below the fit floor, or shown to the user and declined. Nothing carried at `NOT-CHECKED` depth, nothing from a discovery sweep. The verdict is permanent and nothing ever announces it again, so recording an unexamined posting removes it from every future scan without anyone having decided to.
 
 ### Reading back a digest that already exists
 

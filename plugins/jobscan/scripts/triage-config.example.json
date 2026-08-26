@@ -2,7 +2,10 @@
   "_comment": "Copy to triage-config.json and edit. This is the ONLY file you must customize to make the ATS pipeline work for your field. Patterns are JavaScript regex source strings, matched case-insensitively against the job title.",
 
   "salaryFloor": 65000,
-  "_salaryFloor": "Hard minimum annual base in your currency. A posting whose feed-reported minimum is below this is rejected at zero cost. Postings with no stated salary are NOT rejected here; they pass to a later stage.",
+  "_salaryFloor": "Hard minimum annual base in your currency. A posting whose feed-reported minimum is below this is rejected at zero cost. Postings with no stated salary are NOT rejected here; they pass to a later stage. Hourly, weekly and monthly ranges are converted to an annual figure before the comparison; a figure whose pay period the feed did not state is treated as no salary rather than guessed at.",
+
+  "maxAgeDays": 0,
+  "_maxAgeDays": "Reject postings older than this many days, using the date the feed reports. 0 turns the check off, which is the default: a cutoff set too tight quietly discards live roles, and government and academic hiring cycles routinely leave a real opening posted for months. If you set it, 60-90 is a sane starting point, and note that Greenhouse reports last-updated rather than first-posted, so its postings read younger than they are. A posting with no usable date is never rejected here.",
 
   "matchTitlePatterns": [
     "\\bdata\\s+(analyst|scientist|engineer)\\b",
