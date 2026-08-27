@@ -29,8 +29,17 @@ from an installed plugin.
 
 That covers everything checkable from disk: Node's version, the scripts themselves, the config file and its
 two paths, the data folder, `profile-core.md`, the job-title patterns, the employer registry, the feed list,
-the seen-URL cache, the archive folder and its writability, `Applied Index.md`, and any personal file
-stranded inside the plugin folder by a pre-0.3.0 install.
+the seen-URL cache, the federal API key, the printer used to archive postings, the page-diagnosis signature
+bank, the archive folder and its writability, `Applied Index.md`, and any personal file stranded inside the
+plugin folder by a pre-0.3.0 install.
+
+The last three deserve a word, because they fail differently from the rest. A missing employer registry
+makes a scan return nothing, which is loud. A missing printer, a missing signature bank or an unconfigured
+federal key makes a scan return *the same results, more expensively* — it silently falls back to the browser
+habit each of those tools replaced. Nobody reports that as a bug, because nothing looks wrong until the
+usage limit arrives mid-run. "Federal tier" is reported as a note rather than a fault when no key is set,
+since most fields have no federal roles in them; it becomes a fault only once a key exists and something
+about it is wrong.
 
 **The paths it prints are already shortened** — `~/…/jobscan-data/ats` rather than the absolute path — so
 read them out as they come. That is the folder name the user would recognise in Finder or File Explorer.

@@ -32,6 +32,15 @@ Work Search Log.md
 Thumbs.db
 *.log
 
+# Credentials, belt and braces. Keys live in jobscan-config.md (already ignored above) or in the
+# environment; nothing here should ever hold one, and a stray file must not be committable.
+**/*.secrets.json
+**/usajobs.secrets.json
+
+# Archived postings, if anyone runs the system from inside a clone.
+description.pdf
+applied.pdf
+
 # ATS pipeline: personal config and caches now live in <data_path>/ats/, outside the repo entirely.
 # These entries stay as a safety net for installs from before that split (ats-feeds.json reveals who
 # you apply to).

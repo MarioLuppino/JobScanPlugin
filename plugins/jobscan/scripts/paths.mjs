@@ -61,6 +61,32 @@ function fromConfig(key) {
   return m ? expand(m[1]) : null;
 }
 
+/**
+ * The same lookup, without the path expansion.
+ *
+ * fromConfig() exists to resolve directories, so it runs its result through
+ * expand(), which makes a relative-looking value absolute. That is exactly wrong
+ * for a value that is not a path: an API key, an email address, a number. Those
+ * callers get the raw string.
+ *
+ * Returns null for a missing file, a missing key, or an unfilled `{{placeholder}}`
+ * left behind by the onboarding template — all three mean "the user has not set
+ * this", and a caller that had to tell them apart would be doing so to no end.
+ *
+ * @param {string} key e.g. 'usajobs_api_key'
+ * @returns {string|null}
+ */
+export function configValue(key) {
+  if (!existsSync(CONFIG_PATH)) return null;
+  let text;
+  try { text = readFileSync(CONFIG_PATH, 'utf8'); } catch { return null; }
+  const m = text.match(new RegExp(`^\\s*${key}\\s*:\\s*([^#\\n]+)`, 'm'));
+  if (!m) return null;
+  const v = m[1].trim().replace(/^["']|["']$/g, '');
+  if (!v || v.startsWith('{{')) return null;
+  return v;
+}
+
 export const DATA_DIR =
   expand(process.env.JOBSCAN_DATA) ||
   fromConfig('data_path') ||

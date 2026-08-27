@@ -40,10 +40,14 @@ with the plugin; the user's personal files live at `<jobscan-data>/`.
 Optimize the process, never the output. Read each reference once per task and reuse it across the batch;
 never re-read a file already in context. Reuse the structured job summary from `job-search` rather than
 re-fetching the posting — except at the pre-draft gate, which always re-loads the posting live. **That gate
-load is one load, and it does both jobs**: it confirms the posting is open *and* it is the copy you
-deconstruct in step 1 and save as `Job Posting.md`. Verifying first and fetching again for the detail pays
-twice for one page, and it is the likeliest place in this skill to do so, because a listing that arrived
-`NOT-CHECKED` has no stored summary to reuse and the gate is where its first real read happens.
+load is one load, and it does three jobs**: it confirms the posting is open, it is the copy you deconstruct
+in step 1 and save as `Job Posting.md`, and printing it with `scripts/save-posting-pdf.mjs` archives it as
+`description.pdf` at no context cost at all. Print first: a PDF that comes back full is itself the liveness
+evidence, and `scripts/check-page.mjs --pdf description.pdf --expect "<job title>"` catches the silent case
+where a portal redirected a dead posting to its own search page and the read looked perfectly healthy.
+Verifying first and fetching again for the detail pays twice for one page, and it is the likeliest place in
+this skill to do so, because a listing that arrived `NOT-CHECKED` has no stored summary to reuse and the
+gate is where its first real read happens.
 **Edit, don't regenerate:** preserve formatting, education, publications, awards, dates, and employer info
 verbatim; only rewrite the professional summary, selected bullets, skills ordering, and project emphasis.
 Write the cover letter from the tailored résumé + summary; reload the profile only if a fact is missing. This
