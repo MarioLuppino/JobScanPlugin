@@ -1,0 +1,53 @@
+{
+  "_comment": "Signature bank for classifying a fetched page WITHOUT a screenshot. Matched against page-read / page-text / pdftotext output by check-page.mjs. Patterns are case-insensitive JS regex source. Tuned the same way triage patterns are: add a signature the first time a real scan is fooled by one, and say in the note which portal taught it.",
+  "_verdicts": {
+    "captcha": "STOP. Hand the URL to the user. Never attempt to solve it.",
+    "blocked": "Bot detection or IP block. Do not retry this tool. Down the ladder or drop the source.",
+    "auth": "Login wall. The content is not reachable without the user's own session. Say so and move on.",
+    "gone": "The posting is closed or removed. This is a real answer, not a failure. Mark it CLOSED.",
+    "empty-shell": "JavaScript portal that did not render. Wrong tool, not a dead page. Re-read the portals.md ladder.",
+    "ratelimit": "Back the whole worker pool off. Do not retry the single call.",
+    "server": "Employer-side error. One retry allowed, then UNVERIFIED.",
+    "cookiewall": "Consent gate. Content sits behind it. Never accept terms on the user's behalf."
+  },
+  "signatures": [
+    { "verdict": "captcha",     "pattern": "verify (?:you are|you're) (?:a )?human",           "note": "Cloudflare Turnstile interstitial" },
+    { "verdict": "captcha",     "pattern": "i'?m not a robot|recaptcha|hcaptcha|turnstile",     "note": "reCAPTCHA / hCaptcha widget names appear in the accessibility tree" },
+    { "verdict": "captcha",     "pattern": "press (?:and hold|&) hold",                          "note": "PerimeterX press-and-hold; seen on Workday and iCIMS tenants" },
+    { "verdict": "captcha",     "pattern": "complete the security check",                        "note": "" },
+    { "verdict": "captcha",     "pattern": "checking (?:if )?(?:your|the) (?:browser|connection)","note": "Cloudflare interstitial; sometimes resolves, usually does not headless" },
+
+    { "verdict": "blocked",     "pattern": "access denied|you (?:have been|are) blocked",         "note": "" },
+    { "verdict": "blocked",     "pattern": "request (?:was )?(?:blocked|unauthorized) .{0,40}security","note": "Akamai / Imperva" },
+    { "verdict": "blocked",     "pattern": "error 10\\d\\d",                                      "note": "Cloudflare 1000-series ray errors" },
+    { "verdict": "blocked",     "pattern": "unusual traffic from your computer",                  "note": "Search-engine block page" },
+    { "verdict": "blocked",     "pattern": "enable javascript and cookies to continue",           "note": "" },
+    { "verdict": "blocked",     "pattern": "pardon (?:the )?interruption",                        "note": "Large aggregator challenge page" },
+
+    { "verdict": "auth",        "pattern": "sign in to (?:continue|view|your account)",           "note": "" },
+    { "verdict": "auth",        "pattern": "please log ?in|session (?:has )?(?:expired|timed out)","note": "" },
+    { "verdict": "auth",        "pattern": "create an account to (?:apply|view)",                 "note": "Most university portals gate APPLY, not the posting itself" },
+    { "verdict": "auth",        "pattern": "401 unauthorized|403 forbidden",                      "note": "" },
+
+    { "verdict": "gone",        "pattern": "(?:this )?(?:job|position|vacancy|posting|requisition)[^.]{0,40}(?:is )?(?:no longer (?:available|accepting)|has been (?:filled|closed|removed)|closed)","note": "The single most valuable class: a real answer" },
+    { "verdict": "gone",        "pattern": "we are no longer accepting applications",             "note": "Greenhouse and Lever standard string" },
+    { "verdict": "gone",        "pattern": "this (?:announcement|vacancy) (?:is closed|has closed)","note": "Federal announcement wording" },
+    { "verdict": "gone",        "pattern": "404|page not found|we can'?t find (?:the|that) page",  "note": "" },
+    { "verdict": "gone",        "pattern": "job (?:id|posting) .{0,20}(?:not found|does not exist)","note": "" },
+    { "verdict": "gone",        "pattern": "search returned no results|no (?:jobs|positions|results) (?:were )?found","note": "Distinguish from a tool failure: this string means the SITE answered" },
+
+    { "verdict": "empty-shell", "pattern": "you need to enable javascript to run this app",       "note": "Create-React-App default; common on government portals" },
+    { "verdict": "empty-shell", "pattern": "<noscript>|loading\\.\\.\\.\\s*$",                     "note": "" },
+    { "verdict": "empty-shell", "pattern": "this (?:site|application) requires javascript",        "note": "" },
+
+    { "verdict": "ratelimit",   "pattern": "429|too many requests|rate limit(?:ed)?|slow down",   "note": "" },
+    { "verdict": "ratelimit",   "pattern": "quota (?:exceeded|exhausted)",                        "note": "Metered scrape services and API-key sources" },
+
+    { "verdict": "server",      "pattern": "50[0234] (?:internal )?(?:server )?error|service unavailable|bad gateway","note": "" },
+    { "verdict": "server",      "pattern": "something went wrong|we'?re having trouble",           "note": "" },
+    { "verdict": "server",      "pattern": "HTTP_422",                                            "note": "Workday: wrong tenant/site path, per portals.md" },
+
+    { "verdict": "cookiewall",  "pattern": "accept (?:all )?cookies|manage (?:your )?(?:cookie )?preferences","note": "Only a wall if it is ALL the page returned; otherwise it is chrome and main-content extraction drops it" },
+    { "verdict": "cookiewall",  "pattern": "we value your privacy.{0,80}consent",                 "note": "European portals" }
+  ]
+}

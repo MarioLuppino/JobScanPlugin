@@ -112,6 +112,12 @@ roles, and every scan afterwards pulls those boards directly for nothing.
 | `discover-ats.mjs` | Probes Greenhouse / Lever / SmartRecruiters / Ashby / Workable slugs. |
 | `discover-workday.mjs` | Probes Workday CXS paths; `--retry` re-checks ones marked `pending`. |
 | `test-triage.mjs` | Regression tests. Run after any edit to your patterns. |
+| `usajobs.mjs` | Queries the free USAJOBS Search API. Turns the whole federal branch into one request. |
+| `save-posting-pdf.mjs` | Prints a posting to `description.pdf` in a browser subprocess. Zero context cost. |
+| `check-page.mjs` | Names why a page read came back wrong, from the text alone. No screenshot needed. |
+| `page-errors.json` | The signature bank `check-page.mjs` matches against. Add to it when a scan is fooled. |
+| `chrome.mjs` | Finds a headless-capable browser. Shared by the printer and the doctor. |
+| `scan-postmortem.mjs` | Profiles a finished run from its transcript: calls, errors, payload sizes, stalls. |
 | `calibrate.mjs` | Reads recorded outcomes; reports whether your fit scores predict anything. |
 | `pipeline.mjs` | Application aging, follow-up nudges, weekly quota tracking. |
 | `*.example.json` | Templates. Copy each to the same name without `.example`. |
@@ -221,6 +227,54 @@ never submitted (wasted work), applications old enough to chase, and whether a w
 
 Both need one habit: **record the fit score when you apply, and the outcome when you hear back, including
 "no response."** Skipping the score is the usual failure, and it makes your best evidence unusable.
+
+## The three cheap tiers
+
+Each of these replaces a habit that worked and cost far too much. None of them is optional in the sense that
+matters: without them the scan does the same job with the browser, and the browser is where a run's bill
+comes from.
+
+**Federal, one request instead of a crawl.** The public federal job site is a JavaScript shell that returns
+nothing to a plain fetch, and it is the most-searched source in any US federal scan. `usajobs.mjs` reads a
+free API key from `$USAJOBS_API_KEY` or `usajobs_api_key` in your config and emits the scan's listing shape:
+
+```bash
+node "$S/usajobs.mjs" --keyword "<term>" --location "<City, State>" --since 14 | node "$S/triage.mjs"
+node "$S/usajobs.mjs" --selftest     # does the key work?
+```
+
+The one trap is that the API wants the **registered email address** in the `User-Agent` header, not a browser
+string. That inverts the usual meaning of that header and is the most common cause of a 403 against a
+perfectly good key. `doctor.mjs` checks for it.
+
+**Archive by printing, never by screenshotting.** `save-posting-pdf.mjs` renders the posting in a headless
+browser and writes a PDF. The browser is a separate process, so **not one byte of the page enters a context
+window** — this is cheaper than every reading tool in the system, including the free-looking ones.
+
+```bash
+node "$S/save-posting-pdf.mjs" "<posting url>" --out "<application folder>"
+```
+
+A PDF under about 12 KB is a login wall, a block page or an unrendered shell, and the script says so. That
+makes printing a free liveness check as well as an archive: it is worth doing *before* drafting, since
+postings close and a packet with no archived description cannot answer what was actually asked for.
+
+**Diagnose from text, not from a picture.** When a read comes back wrong, the expensive reflex is to
+screenshot the page to see why — after already paying for the read once or twice. `check-page.mjs` matches
+the text against a signature bank and names the failure:
+
+```bash
+node "$S/check-page.mjs" --file page.txt
+node "$S/check-page.mjs" --pdf description.pdf --expect "<the job title>"
+```
+
+Verdicts: `ok`, `captcha`, `blocked`, `auth`, `ratelimit`, `gone`, `empty-shell`, `server`, `cookiewall`,
+`wrong-page`, `empty`. Two of them carry most of the value. **`gone` is a real answer, not a failure** — the
+posting is closed, mark it and move on. **`wrong-page`** is the silent one: a portal that redirects a dead
+posting to its search page reads as a perfectly healthy page, which is what `--expect` exists to catch.
+
+Tune the bank the way you tune title patterns: add a signature the first time a real scan is fooled by one,
+and note which portal taught it.
 
 ## What this does not do
 

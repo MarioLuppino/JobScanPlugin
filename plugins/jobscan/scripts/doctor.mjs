@@ -19,8 +19,9 @@
 import { readFileSync, existsSync, mkdirSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath, locate, display,
+  SCRIPTS_DIR, CONFIG_PATH, DATA_DIR, ARCHIVE_DIR, ATS_DIR, archivePath, locate, display, configValue,
 } from './paths.mjs';
+import { findChrome, resolves } from './chrome.mjs';
 
 const MIN_NODE = 18; // global fetch()
 
@@ -224,6 +225,82 @@ const { data: seen } = readPersonal('seen-urls.json');
 const seenCount = Array.isArray(seen) ? seen.length : Object.keys(seen ?? {}).length;
 report('note', 'Seen-URL cache',
   seenCount ? `${seenCount} posting${seenCount === 1 ? '' : 's'} already screened out` : 'empty — first run');
+
+// 5b. Federal, archive and diagnosis tiers -----------------------------------
+// Each of these replaced an expensive habit with a cheap tool: one JSON request instead of
+// scraping a JavaScript shell, a printed PDF instead of a screenshot, a text classifier instead
+// of a screenshot. A tool that is quietly unreachable does not announce itself — the run simply
+// goes back to the expensive habit and the bill arrives later, which is the whole reason this
+// file exists.
+//
+// These live below the never-onboarded early exit on purpose. All three are about capability
+// rather than about the install being broken, and printing them at somebody who has not run
+// setup yet reads as a list of faults in a product they have not started.
+
+const federalKey = process.env.USAJOBS_API_KEY || configValue('usajobs_api_key');
+const federalAgent = process.env.USAJOBS_USER_AGENT || configValue('usajobs_user_agent') || configValue('email');
+const hasUsajobsScript = existsSync(join(SCRIPTS_DIR, 'usajobs.mjs'));
+
+if (!federalKey) {
+  report('note', 'Federal tier', 'no USAJOBS API key configured',
+    'Only worth fixing if the search includes US federal roles. Without a key the federal branch ' +
+    'falls back to scraping a JavaScript site that never returns a listing, and an empty result ' +
+    'there looks exactly like a quiet week. The key is free and self-service at ' +
+    'developer.usajobs.gov; add it as usajobs_api_key in the config.');
+} else if (!federalAgent) {
+  report('fix', 'Federal tier', 'a USAJOBS key is set but no user agent is',
+    'USAJOBS requires the User-Agent header to carry the email address the key was registered ' +
+    'with. Add usajobs_user_agent to the config.');
+} else if (!/@/.test(federalAgent)) {
+  report('fix', 'Federal tier', `the USAJOBS user agent is "${federalAgent}", which is not an email address`,
+    'USAJOBS wants the registered email in that header, not a browser string. This inverts the ' +
+    'usual meaning of User-Agent and is the single most common cause of a 403 against a ' +
+    'perfectly valid key.');
+} else if (!hasUsajobsScript) {
+  report('fix', 'Federal tier', 'credentials are configured but usajobs.mjs is missing',
+    'Reinstall the plugin: "Update my JobScan plugin".');
+} else {
+  report('ok', 'Federal tier', 'USAJOBS key configured; usajobs.mjs present');
+}
+
+const chrome = findChrome();
+const hasPrinter = existsSync(join(SCRIPTS_DIR, 'save-posting-pdf.mjs'));
+if (chrome && hasPrinter) {
+  report('ok', 'Archive tier', `postings can be printed via ${d(chrome)}`);
+} else {
+  report('fix', 'Archive tier',
+    chrome ? 'save-posting-pdf.mjs is missing' : 'no headless-capable Chrome, Chromium or Edge found',
+    'Postings cannot be archived as print-ready PDFs, so packets get filed with no record of what ' +
+    'was actually asked for, and the pre-draft gate loses its free liveness check. The fallback is ' +
+    'a screenshot, which costs roughly 15x a page read and stores one viewport of unselectable ' +
+    'image. Install Chrome or Chromium, or set JOBSCAN_CHROME to one already installed.');
+}
+
+const BANK = join(SCRIPTS_DIR, 'page-errors.json');
+if (!existsSync(BANK) || !existsSync(join(SCRIPTS_DIR, 'check-page.mjs'))) {
+  report('fix', 'Diagnosis tier', 'check-page.mjs or page-errors.json is missing',
+    'A bad page read cannot be classified from text, so diagnosis falls back to screenshotting the ' +
+    'page to see what happened — after the page has already been paid for once or twice.');
+} else {
+  let n = 0;
+  const bad = [];
+  try {
+    const bank = JSON.parse(readFileSync(BANK, 'utf8'));
+    n = bank.signatures.length;
+    // A regex that no longer compiles is the quiet failure here: the signature simply never
+    // fires, and a CAPTCHA sails through as a healthy page.
+    for (const sig of bank.signatures) {
+      try { new RegExp(sig.pattern, 'i'); } catch { bad.push(sig.pattern); }
+    }
+  } catch (e) { bad.push(`unparseable: ${e.message}`); }
+  if (bad.length) {
+    report('fix', 'Diagnosis tier', `${bad.length} bad signature(s) in page-errors.json`,
+      `These never match, so whatever they guard against passes as a healthy page: ${bad.slice(0, 3).join('; ')}`);
+  } else {
+    report('ok', 'Diagnosis tier',
+      `${n} page signatures compile; pdftotext ${resolves('pdftotext') ? 'on PATH' : 'NOT on PATH (--pdf mode unavailable)'}`);
+  }
+}
 
 // 6. Archive -----------------------------------------------------------------
 if (!existsSync(ARCHIVE_DIR)) {

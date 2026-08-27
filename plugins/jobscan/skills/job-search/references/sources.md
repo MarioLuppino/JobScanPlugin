@@ -11,7 +11,9 @@ The point is coverage across *kinds* of employer, not a fixed list.
 
 1. **Federal** — the national government job portal (in the US, USAJOBS, whose public site is
    JavaScript-only; use its free JSON Search API, see `references/portals.md`). Filter to the pay-grade
-   floor from onboarding.
+   floor from onboarding. Where a USAJOBS key is configured, this whole tier is one command — `node
+   "${CLAUDE_PLUGIN_ROOT}/scripts/usajobs.mjs" --keyword "<term>" --location "<City, State>"` — and its
+   output pipes into `triage.mjs` like any feed. Never scrape the public site; see `references/portals.md`.
 2. **State / provincial agencies** — often on NEOGOV / governmentjobs.com-style portals. These need JS
    rendering (Firecrawl or a browser) to read.
 3. **University / research institutions** — HR boards, department pages, HigherEdJobs/Chronicle-style
